@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1 — 2026-08-20
+
+- Tests: plugin integration suite (mock Cordis ctx exercising apply, snapshot
+  write, status transitions, and every `xray_composition` view) and a
+  skippable real-dsh e2e suite driving the CLI binary.
+- Repo: changelog, security policy, tag-driven release workflow with npm
+  provenance, SHA-pinned actions, dependabot, badges, `packageManager` pin.
+- No library behavior change.
+
 ## 0.3.0 — 2026-08-20
 
 - `audit`: heuristic static scan of out-of-tree plugins for sensitive
