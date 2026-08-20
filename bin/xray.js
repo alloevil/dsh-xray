@@ -178,6 +178,57 @@ function cmdHealth(args) {
   if (result.unhealthy.length) process.exitCode = 1;
 }
 
+function cmdCost(args) {
+  const snap = readRuntimeSnapshot();
+  const result = model.contextCost(snap);
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+  console.log(
+    `~${result.totalTokens} tokens across ${result.toolCount} tool schema(s) (captured ${result.capturedAt})\n`,
+  );
+  for (const t of result.tools) {
+    const bar = '█'.repeat(Math.max(1, Math.round(t.share / 2)));
+    console.log(`${pad(t.name, 28)} ${pad(`~${t.tokens}`, 8)} ${pad(`${t.share}%`, 7)} ${bar}`);
+  }
+}
+
+function cmdShadow(args) {
+  const snap = readRuntimeSnapshot();
+  const result = model.shadowing(snap);
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+  if (!result.services.length) console.log('no service is provided by more than one plugin');
+  for (const s of result.services) {
+    console.log(`${s.service}: provided by ${s.providers.join(' AND ')}`);
+  }
+  if (result.registrars.length) {
+    console.log('\n# tool/command registrars:');
+    for (const r of result.registrars) {
+      console.log(`  ${r.plugin}: ${r.registrations} registration(s)`);
+    }
+  }
+  if (result.services.length) process.exitCode = 1;
+}
+
+function cmdAudit(args) {
+  const { collectAudit } = require('../lib/collect/audit.js');
+  const data = collectStatic(args.profile);
+  const result = collectAudit(data);
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+  if (!result.plugins.length) {
+    return console.log(
+      'no out-of-tree plugins installed (kernel bundles are the trusted baseline)',
+    );
+  }
+  for (const p of result.plugins) {
+    console.log(`${p.name}@${p.version} (${p.scannedFiles} file(s) scanned)`);
+    if (!p.categories.length) console.log('  no sensitive touchpoints detected');
+    for (const c of p.categories) {
+      console.log(
+        `  ${c.label}: ${c.files.slice(0, 3).join(', ')}${c.files.length > 3 ? ', …' : ''}`,
+      );
+    }
+  }
+}
+
 const commands = {
   attribute: cmdAttribute,
   conflicts: cmdConflicts,
@@ -185,6 +236,9 @@ const commands = {
   snapshot: cmdSnapshot,
   deps: cmdDeps,
   health: cmdHealth,
+  cost: cmdCost,
+  shadow: cmdShadow,
+  audit: cmdAudit,
 };
 
 const args = parseArgs(process.argv.slice(2));
@@ -201,8 +255,11 @@ Commands:
   snapshot    content-addressed lockfile of the effective composition
   deps        service dependency graph from the live runtime snapshot
   health      plugin lifecycle health from the live runtime snapshot
+  cost        estimated context-token cost of each model-facing tool schema
+  shadow      services provided by multiple plugins, and per-plugin registrations
+  audit       static scan of out-of-tree plugins for sensitive touchpoints
 
-deps/health need the plugin mounted: dsh plugin --profile web add dsh-xray`);
+deps/health/cost/shadow need the plugin mounted: dsh plugin --profile web add dsh-xray`);
   process.exit(args._[0] ? 2 : 0);
 }
 try {

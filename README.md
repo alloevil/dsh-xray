@@ -17,19 +17,22 @@ npx dsh-xray diff        # declared (static layers) vs actual (dump-config) tree
 npx dsh-xray snapshot    # content-addressed lockfile of the effective composition
 npx dsh-xray deps [svc]  # service dependency graph: providers, consumers, disable-cascade
 npx dsh-xray health      # plugin lifecycle health: failed fibers, pending injects, transitions
+npx dsh-xray cost        # estimated context-token cost per model-facing tool schema
+npx dsh-xray shadow      # services provided by multiple plugins
+npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touchpoints
 ```
 
 All commands take `--profile <name>` (default `web`) and `--json`. `diff` exits `1` when the trees disagree; `health` exits `1` when any plugin is unhealthy. `attribute`, `conflicts`, and `snapshot` are fully static: they work even when dsh cannot start. `deps` and `health` read the runtime snapshot the mounted plugin maintains at `$DSH_HOME/xray/runtime.json`.
 
 ## Agent tool
 
-Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health`), so an agent can answer "what capabilities do I have / what plugin provides X / why is Y unavailable" about itself.
+Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow`), so an agent can answer "what capabilities do I have / what plugin provides X / why is Y unavailable" about itself.
 
 ## Capabilities
 
 Diagnostic imaging for a running composition — complementary to [dsh-doctor](https://www.npmjs.com/package/dsh-doctor) (rescue & recovery).
 
-Shipped in 0.2.x:
+Shipped in 0.3.x:
 
 - **Layer attribution** — which layer introduced each active plugin: kernel bundle, profile dependency, `cordis.patch.yml` insert, or repository source
 - **Declared vs. actual diff** — installed-but-inactive, uninstalled-but-lingering patch rows
@@ -39,11 +42,9 @@ Shipped in 0.2.x:
 - **Runtime health** — per-plugin fiber lifecycle state, startup failures, transition history (`health`)
 - **Agent self-introspection** — the `xray_composition` tool lets agents inspect their own capability set
 
-Planned:
-
-- **Capability audit** — what installed plugins actually touch: network egress, shell, filesystem, env; permission diff across updates
-- **Command/tool shadowing** — plugins registering the same command/tool, and which one silently wins
-- **Context cost** — tokens each plugin injects into agent context: tool schemas, prompt sections, skills
+- **Capability audit** — heuristic static scan of out-of-tree plugins: network egress, shell, filesystem, env, eval (`audit`)
+- **Service shadowing** — services claimed by multiple plugins, per-plugin tool/command registrations (`shadow`)
+- **Context cost** — estimated tokens each model-facing tool schema occupies (`cost`)
 
 ## Install
 
