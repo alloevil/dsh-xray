@@ -1,5 +1,9 @@
 # dsh-xray
 
+[![npm](https://img.shields.io/npm/v/dsh-xray)](https://www.npmjs.com/package/dsh-xray)
+[![CI](https://github.com/alloevil/dsh-xray/actions/workflows/check.yml/badge.svg)](https://github.com/alloevil/dsh-xray/actions/workflows/check.yml)
+[![license](https://img.shields.io/npm/l/dsh-xray)](./LICENSE)
+
 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 拍 X 光——看清到底加载了什么、为什么在那、以及它悄悄花掉了你什么。
 
 [English](./README.md)
@@ -27,6 +31,10 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ## Agent 工具
 
 挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow`),agent 可以自答"我有哪些能力 / 哪个插件提供 X / 为什么 Y 不可用"。
+
+## 安全立场
+
+dsh-xray 只读不执行。patch 文件里的 loader `!!js` 表达式解析为不透明标记、绝不求值;CLI 从不执行插件代码(`audit` 是对源码文本的模式扫描);挂载的插件只写 `$DSH_HOME/xray/` 目录。详见 [SECURITY.md](./SECURITY.md)。
 
 ## 能力
 

@@ -1,5 +1,9 @@
 # dsh-xray
 
+[![npm](https://img.shields.io/npm/v/dsh-xray)](https://www.npmjs.com/package/dsh-xray)
+[![CI](https://github.com/alloevil/dsh-xray/actions/workflows/check.yml/badge.svg)](https://github.com/alloevil/dsh-xray/actions/workflows/check.yml)
+[![license](https://img.shields.io/npm/l/dsh-xray)](./LICENSE)
+
 X-ray for your [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — see what's actually loaded, why, and what it costs you.
 
 [中文](./README.zh.md)
@@ -27,6 +31,10 @@ All commands take `--profile <name>` (default `web`) and `--json`. `diff` exits 
 ## Agent tool
 
 Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow`), so an agent can answer "what capabilities do I have / what plugin provides X / why is Y unavailable" about itself.
+
+## Safety stance
+
+dsh-xray reads; it never runs. Loader `!!js` expressions in patch files are parsed as opaque markers and never evaluated, the CLI never executes plugin code (`audit` is a pattern scan over source text), and the mounted plugin writes only under `$DSH_HOME/xray/`. See [SECURITY.md](./SECURITY.md).
 
 ## Capabilities
 
