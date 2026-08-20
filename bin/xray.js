@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict';
+
 // dsh-xray CLI. Static analysis works even when dsh cannot boot;
 // commands needing the composed tree degrade with a clear notice.
 
@@ -22,7 +22,10 @@ function tryDump(profile) {
   try {
     return { dump: collectDump(profile), error: null };
   } catch (err) {
-    return { dump: null, error: `dump-config unavailable (${err.message.split('\n')[0]}); static-only mode` };
+    return {
+      dump: null,
+      error: `dump-config unavailable (${err.message.split('\n')[0]}); static-only mode`,
+    };
   }
 }
 
@@ -42,7 +45,9 @@ function cmdAttribute(args) {
     console.log(`${pad(row.id, 28)} ${pad(row.origin?.layer, 32)}${over}${flags}`);
   }
   if (result.orphans.length) {
-    console.log(`\n! ${result.orphans.length} orphan override(s) targeting nonexistent rows (silently skipped by dsh):`);
+    console.log(
+      `\n! ${result.orphans.length} orphan override(s) targeting nonexistent rows (silently skipped by dsh):`,
+    );
     for (const o of result.orphans) console.log(`  ${o.id}  in ${o.file}`);
   }
   for (const w of result.warnings) console.log(`! ${w}`);
@@ -56,7 +61,9 @@ function cmdConflicts(args) {
   for (const c of result) {
     console.log(`${c.id}`);
     for (const f of c.fields) {
-      console.log(`  .${f.field}: ${f.writers.map((w) => w.layer).join(' → ')}  (winner: ${f.winner})`);
+      console.log(
+        `  .${f.field}: ${f.writers.map((w) => w.layer).join(' → ')}  (winner: ${f.winner})`,
+      );
     }
   }
 }
@@ -64,7 +71,11 @@ function cmdConflicts(args) {
 function cmdDiff(args) {
   const data = collectStatic(args.profile);
   const { dump, error } = tryDump(args.profile);
-  if (error) { console.error(`! ${error}`); process.exitCode = 1; return; }
+  if (error) {
+    console.error(`! ${error}`);
+    process.exitCode = 1;
+    return;
+  }
   const result = model.diff(data, dump);
   if (args.json) return console.log(JSON.stringify(result, null, 2));
 
@@ -74,12 +85,32 @@ function cmdDiff(args) {
     for (const it of items) console.log(`  ${fmt(it)}`);
   };
   section('declared but not in boot tree', result.missingFromActual, (r) => `${r.id} (${r.name})`);
-  section('in boot tree but undeclared', result.missingFromDeclared, (r) => `${r.id} (${r.name}) — dump says: ${r.provenance}`);
-  section('disabled-state mismatch', result.disabledMismatch, (r) => `${r.id}: declared=${r.declared} actual=${r.actual}`);
-  section('orphan overrides (silently skipped)', result.orphanOverrides, (r) => `${r.id} in ${r.file}`);
-  section('installed but inactive packages', result.inactivePackages, (r) => `${r.name}@${r.version}`);
-  const total = result.missingFromActual.length + result.missingFromDeclared.length
-    + result.disabledMismatch.length + result.orphanOverrides.length + result.inactivePackages.length;
+  section(
+    'in boot tree but undeclared',
+    result.missingFromDeclared,
+    (r) => `${r.id} (${r.name}) — dump says: ${r.provenance}`,
+  );
+  section(
+    'disabled-state mismatch',
+    result.disabledMismatch,
+    (r) => `${r.id}: declared=${r.declared} actual=${r.actual}`,
+  );
+  section(
+    'orphan overrides (silently skipped)',
+    result.orphanOverrides,
+    (r) => `${r.id} in ${r.file}`,
+  );
+  section(
+    'installed but inactive packages',
+    result.inactivePackages,
+    (r) => `${r.name}@${r.version}`,
+  );
+  const total =
+    result.missingFromActual.length +
+    result.missingFromDeclared.length +
+    result.disabledMismatch.length +
+    result.orphanOverrides.length +
+    result.inactivePackages.length;
   if (total === 0) console.log('declared and actual trees agree');
   else process.exitCode = 1;
 }
