@@ -1,0 +1,52 @@
+{
+  "name": "dsh-xray",
+  "version": "0.1.1",
+  "description": "X-ray for your DeepSeek Harness — see what's actually loaded, why, and what it costs you.",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "bin": {
+    "dsh-xray": "bin/xray.js"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md"
+  ],
+  "dependencies": {
+    "yaml": "^2.6.0"
+  },
+  "scripts": {
+    "test": "node --test tests/model.spec.js"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "dsh",
+    "cordis",
+    "diagnostics",
+    "introspection",
+    "plugin-tree"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  }
+}
