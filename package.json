@@ -1,6 +1,6 @@
 {
   "name": "dsh-xray",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "X-ray for your DeepSeek Harness — see what's actually loaded, why, and what it costs you.",
   "repository": {
     "type": "git",
