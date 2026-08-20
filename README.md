@@ -28,6 +28,49 @@ npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touc
 
 All commands take `--profile <name>` (default `web`) and `--json`. `diff` exits `1` when the trees disagree; `health` exits `1` when any plugin is unhealthy. `attribute`, `conflicts`, and `snapshot` are fully static: they work even when dsh cannot start. `deps` and `health` read the runtime snapshot the mounted plugin maintains at `$DSH_HOME/xray/runtime.json`.
 
+## What it looks like
+
+Every row of the booted tree, attributed to the layer that introduced it — and who patched it since:
+
+```console
+$ npx dsh-xray attribute
+# 130 rows in profile "web"
+
+timer                        @deepseek-ai/dsh-base
+hmr                          @deepseek-ai/dsh-base    ← patched by @deepseek-ai/dsh-web-app [disabled]
+llm                          @deepseek-ai/dsh-base
+session-query-sqlite         @deepseek-ai/dsh-base    ← patched by @deepseek-ai/dsh-web-app
+...
+```
+
+What breaks if you disable a provider — computed from the live service store, not guesses:
+
+```console
+$ npx dsh-xray deps
+# disable-cascade (transitive consumers of each provider):
+  Loader → 5 plugin(s): AgentPresets, ClientModuleRegistry, Hmr, Include, PluginInventoryGateway
+  TimerService → 1 plugin(s): Hmr
+  SessionProjectionRegistry → 1 plugin(s): SessionProjectionCache
+```
+
+Which fields have multiple writers, and who silently wins:
+
+```console
+$ npx dsh-xray conflicts
+session-query-sqlite
+  .config: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
+tool-bash
+  .disabled: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
+```
+
+And when a patch row targets an id that doesn't exist (dsh skips it silently), `diff` catches it:
+
+```console
+$ npx dsh-xray diff
+orphan overrides (silently skipped) (1)
+  no-such-row in ~/.dsh/profiles/web/cordis.patch.yml
+```
+
 ## Agent tool
 
 Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow`), so an agent can answer "what capabilities do I have / what plugin provides X / why is Y unavailable" about itself.

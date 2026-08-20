@@ -42,7 +42,14 @@
     "cordis",
     "diagnostics",
     "introspection",
-    "plugin-tree"
+    "plugin-tree",
+    "dependency-graph",
+    "observability",
+    "audit",
+    "security-scan",
+    "token-cost",
+    "lockfile",
+    "troubleshooting"
   ],
   "dsh": {
     "bundle": {

@@ -28,6 +28,49 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 
 所有命令支持 `--profile <name>`(默认 `web`)和 `--json`。`diff` 在两棵树不一致时退出码 `1`;`health` 在有插件不健康时退出码 `1`。`attribute`、`conflicts`、`snapshot` 是纯静态的:dsh 起不来时照样能跑。`deps` 和 `health` 读取已挂载插件维护在 `$DSH_HOME/xray/runtime.json` 的运行时快照。
 
+## 长什么样
+
+启动树的每一行,归因到引入它的层——以及之后谁 patch 过它:
+
+```console
+$ npx dsh-xray attribute
+# 130 rows in profile "web"
+
+timer                        @deepseek-ai/dsh-base
+hmr                          @deepseek-ai/dsh-base    ← patched by @deepseek-ai/dsh-web-app [disabled]
+llm                          @deepseek-ai/dsh-base
+session-query-sqlite         @deepseek-ai/dsh-base    ← patched by @deepseek-ai/dsh-web-app
+...
+```
+
+停用一个 provider 会连带瘫掉什么——从真实服务存储算出来,不是猜的:
+
+```console
+$ npx dsh-xray deps
+# disable-cascade (transitive consumers of each provider):
+  Loader → 5 plugin(s): AgentPresets, ClientModuleRegistry, Hmr, Include, PluginInventoryGateway
+  TimerService → 1 plugin(s): Hmr
+  SessionProjectionRegistry → 1 plugin(s): SessionProjectionCache
+```
+
+哪些字段有多个写者、谁静默赢了:
+
+```console
+$ npx dsh-xray conflicts
+session-query-sqlite
+  .config: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
+tool-bash
+  .disabled: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
+```
+
+patch 行指向不存在的 id 时(dsh 静默跳过),`diff` 能抓到:
+
+```console
+$ npx dsh-xray diff
+orphan overrides (silently skipped) (1)
+  no-such-row in ~/.dsh/profiles/web/cordis.patch.yml
+```
+
 ## Agent 工具
 
 挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow`),agent 可以自答"我有哪些能力 / 哪个插件提供 X / 为什么 Y 不可用"。
