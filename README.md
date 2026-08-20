@@ -1,18 +1,37 @@
-# dsh-xray
+<p align="center">
+  <img src="./assets/hero.svg" width="100%" alt="dsh-xray — X-ray for your DeepSeek Harness">
+</p>
 
-[![npm](https://img.shields.io/npm/v/dsh-xray)](https://www.npmjs.com/package/dsh-xray)
-[![CI](https://github.com/alloevil/dsh-xray/actions/workflows/check.yml/badge.svg)](https://github.com/alloevil/dsh-xray/actions/workflows/check.yml)
-[![license](https://img.shields.io/npm/l/dsh-xray)](./LICENSE)
+<p align="center">
+  <a href="https://www.npmjs.com/package/dsh-xray"><img src="https://img.shields.io/npm/v/dsh-xray?style=flat-square&color=00d4aa" alt="npm"></a>
+  <a href="https://github.com/alloevil/dsh-xray/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/alloevil/dsh-xray/check.yml?style=flat-square&label=CI" alt="CI"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/npm/l/dsh-xray?style=flat-square" alt="license"></a>
+  <img src="https://img.shields.io/badge/language-JavaScript-f7df1e?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript">
+</p>
 
-X-ray for your [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — see what's actually loaded, why, and what it costs you.
+<p align="center">
+  <strong>X-ray for your <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a></strong> — see what's actually loaded, why, and what it costs you.
+</p>
 
-[中文](./README.zh.md)
+<p align="center">
+  <a href="./README.zh.md">🇨🇳 中文文档</a>
+</p>
+
+---
+
+## The Problem
+
+`dsh --dump-config` shows you the composed tree. The plugin panel shows you a flat list. Neither tells you **why** a plugin is there, **what breaks** if you disable it, or **what it silently costs you**.
+
+**dsh-xray does.**
 
 > **Status: 0.2.x — static + runtime imaging.** Static commands work even when dsh cannot boot; `deps`/`health` and the agent tool need the plugin mounted.
 
-`dsh --dump-config` shows you the composed tree. The plugin panel shows you a flat list. Neither tells you *why* a plugin is there, *what breaks* if you disable it, or *what it silently costs you*. dsh-xray does.
+---
 
-## CLI
+<p align="center">
+  <img src="./assets/section-cli.svg" width="100%" alt="CLI Commands">
+</p>
 
 ```sh
 npx dsh-xray attribute   # which layer introduced each row, and who patched it since
@@ -26,83 +45,110 @@ npx dsh-xray shadow      # services provided by multiple plugins
 npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touchpoints
 ```
 
-All commands take `--profile <name>` (default `web`) and `--json`. `diff` exits `1` when the trees disagree; `health` exits `1` when any plugin is unhealthy. `attribute`, `conflicts`, and `snapshot` are fully static: they work even when dsh cannot start. `deps` and `health` read the runtime snapshot the mounted plugin maintains at `$DSH_HOME/xray/runtime.json`.
+<p align="center">
+  <img src="./assets/section-features.svg" width="100%" alt="Features">
+</p>
 
-## What it looks like
+<table>
+<tr>
+<td width="50%">
 
-Every row of the booted tree, attributed to the layer that introduced it — and who patched it since:
+### 🔍 Layer Attribution
+Which layer introduced each active plugin: kernel bundle, profile dependency, `cordis.patch.yml` insert, or repository source.
 
-```console
-$ npx dsh-xray attribute
-# 130 rows in profile "web"
+### 📊 Declared vs. Actual Diff
+Installed-but-inactive, uninstalled-but-lingering patch rows — all surfaced.
 
-timer                        @deepseek-ai/dsh-base
-hmr                          @deepseek-ai/dsh-base    ← patched by @deepseek-ai/dsh-web-app [disabled]
-llm                          @deepseek-ai/dsh-base
-session-query-sqlite         @deepseek-ai/dsh-base    ← patched by @deepseek-ai/dsh-web-app
-...
-```
+### ⚡ Conflict Detection
+Plugins patching the same config row, and which one silently wins.
 
-What breaks if you disable a provider — computed from the live service store, not guesses:
+### 📸 Composition Snapshot
+Export the effective composition as a lockfile; reproduce it elsewhere.
 
-```console
-$ npx dsh-xray deps
-# disable-cascade (transitive consumers of each provider):
-  Loader → 5 plugin(s): AgentPresets, ClientModuleRegistry, Hmr, Include, PluginInventoryGateway
-  TimerService → 1 plugin(s): Hmr
-  SessionProjectionRegistry → 1 plugin(s): SessionProjectionCache
-```
+</td>
+<td width="50%">
 
-Which fields have multiple writers, and who silently wins:
+### 🌐 Service Dependency Graph
+Who provides and consumes each service; what cascades if you disable X.
 
-```console
-$ npx dsh-xray conflicts
-session-query-sqlite
-  .config: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
-tool-bash
-  .disabled: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
-```
+### 💊 Runtime Health
+Per-plugin fiber lifecycle state, startup failures, transition history.
 
-And when a patch row targets an id that doesn't exist (dsh skips it silently), `diff` catches it:
+### 🤖 Agent Self-Introspection
+The `xray_composition` tool lets agents inspect their own capability set.
 
-```console
-$ npx dsh-xray diff
-orphan overrides (silently skipped) (1)
-  no-such-row in ~/.dsh/profiles/web/cordis.patch.yml
-```
+### 🛡️ Capability Audit
+Heuristic static scan: network egress, shell, filesystem, env, eval.
 
-## Agent tool
+</td>
+</tr>
+</table>
 
-Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow`), so an agent can answer "what capabilities do I have / what plugin provides X / why is Y unavailable" about itself.
+<p align="center">
+  <img src="./assets/section-agent.svg" width="100%" alt="Agent Tool">
+</p>
 
-## Safety stance
+Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow`), so an agent can answer:
 
-dsh-xray reads; it never runs. Loader `!!js` expressions in patch files are parsed as opaque markers and never evaluated, the CLI never executes plugin code (`audit` is a pattern scan over source text), and the mounted plugin writes only under `$DSH_HOME/xray/`. See [SECURITY.md](./SECURITY.md).
+> *"What capabilities do I have?" / "What plugin provides X?" / "Why is Y unavailable?"*
 
-## Capabilities
+— about itself.
 
-Diagnostic imaging for a running composition — complementary to [dsh-doctor](https://www.npmjs.com/package/dsh-doctor) (rescue & recovery).
+---
 
-Shipped in 0.3.x:
+<p align="center">
+  <img src="./assets/section-safety.svg" width="100%" alt="Safety Stance">
+</p>
 
-- **Layer attribution** — which layer introduced each active plugin: kernel bundle, profile dependency, `cordis.patch.yml` insert, or repository source
-- **Declared vs. actual diff** — installed-but-inactive, uninstalled-but-lingering patch rows
-- **Conflict detection** — plugins patching the same config row, and which one silently wins
-- **Composition snapshot** — export the effective composition as a lockfile; reproduce it elsewhere
-- **Service dependency graph** — who provides and consumes each service; what cascades if you disable X (`deps`)
-- **Runtime health** — per-plugin fiber lifecycle state, startup failures, transition history (`health`)
-- **Agent self-introspection** — the `xray_composition` tool lets agents inspect their own capability set
+**dsh-xray reads; it never runs.**
 
-- **Capability audit** — heuristic static scan of out-of-tree plugins: network egress, shell, filesystem, env, eval (`audit`)
-- **Service shadowing** — services claimed by multiple plugins, per-plugin tool/command registrations (`shadow`)
-- **Context cost** — estimated tokens each model-facing tool schema occupies (`cost`)
+- Loader `!!js` expressions in patch files are parsed as opaque markers and **never evaluated**
+- The CLI **never executes** plugin code (`audit` is a pattern scan over source text)
+- The mounted plugin writes only under `$DSH_HOME/xray/`
+- See [SECURITY.md](./SECURITY.md)
 
-## Install
+---
+
+<p align="center">
+  <img src="./assets/section-install.svg" width="100%" alt="Install">
+</p>
 
 ```sh
 dsh plugin --profile web add dsh-xray
 ```
 
+All commands take `--profile <name>` (default `web`) and `--json`.
+
+| Command | Behavior |
+| --- | --- |
+| `diff` | Exits `1` when the trees disagree |
+| `health` | Exits `1` when any plugin is unhealthy |
+| `attribute`, `conflicts`, `snapshot` | Fully static — work even when dsh cannot start |
+| `deps`, `health` | Read runtime snapshot at `$DSH_HOME/xray/runtime.json` |
+
+---
+
+<p align="center">
+  <img src="./assets/section-capabilities.svg" width="100%" alt="Capabilities">
+</p>
+
+Diagnostic imaging for a running composition — complementary to [dsh-doctor](https://www.npmjs.com/package/dsh-doctor) (rescue & recovery).
+
+| Feature | Category |
+| --- | --- |
+| Layer attribution | 🔍 Inspection |
+| Declared vs. actual diff | 🔍 Inspection |
+| Conflict detection | 🔍 Inspection |
+| Composition snapshot | 📦 Export |
+| Service dependency graph | 🌐 Runtime |
+| Runtime health | 🌐 Runtime |
+| Agent self-introspection | 🤖 AI |
+| Capability audit | 🛡️ Security |
+| Service shadowing | 🌐 Runtime |
+| Context cost | 💰 Optimization |
+
+---
+
 ## License
 
-MIT
+[MIT](./LICENSE)
