@@ -1,4 +1,3 @@
-'use strict';
 // Collector tests against a synthetic DSH_HOME fixture (no real dsh needed).
 const { test, before, after } = require('node:test');
 const assert = require('node:assert');

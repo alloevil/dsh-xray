@@ -121,11 +121,70 @@ function cmdSnapshot(args) {
   console.log(JSON.stringify(model.snapshot(data, dump), null, 2));
 }
 
+function readRuntimeSnapshot() {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { xrayDir } = require('../lib/index.js');
+  const file = path.join(xrayDir(), 'runtime.json');
+  if (!fs.existsSync(file)) {
+    throw new Error(
+      `no runtime snapshot at ${file} — mount the plugin first: dsh plugin --profile web add dsh-xray`,
+    );
+  }
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+function cmdDeps(args) {
+  const snap = readRuntimeSnapshot();
+  const result = model.serviceGraph(snap);
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+
+  const filter = args._[1];
+  for (const [service, node] of Object.entries(result.services)) {
+    if (filter && service !== filter) continue;
+    console.log(`${service}`);
+    console.log(`  provided by: ${node.providers.join(', ') || '(nobody)'}`);
+    if (node.consumers.length) console.log(`  consumed by: ${node.consumers.join(', ')}`);
+  }
+  if (!filter && Object.keys(result.cascade).length) {
+    console.log('\n# disable-cascade (transitive consumers of each provider):');
+    for (const [plugin, affected] of Object.entries(result.cascade)) {
+      console.log(
+        `  ${plugin} → ${affected.length} plugin(s): ${affected.slice(0, 6).join(', ')}${affected.length > 6 ? ', …' : ''}`,
+      );
+    }
+  }
+  if (result.unsatisfied.length) {
+    console.log(`\n! ${result.unsatisfied.length} unsatisfied inject(s):`);
+    for (const u of result.unsatisfied) console.log(`  ${u.plugin} wants ${u.service}`);
+  }
+}
+
+function cmdHealth(args) {
+  const snap = readRuntimeSnapshot();
+  const result = model.health(snap);
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+  console.log(
+    `captured ${result.capturedAt}: ${result.healthy.length} healthy, ${result.unhealthy.length} unhealthy`,
+  );
+  for (const p of result.unhealthy) {
+    console.log(`\n${p.name}`);
+    for (const f of p.fibers)
+      console.log(`  fiber ${f.uid}: ${f.state}${f.error ? ` (${f.error})` : ''}`);
+    for (const t of p.transitions.slice(-5)) {
+      console.log(`  ${new Date(t.at).toISOString()} ${t.state}`);
+    }
+  }
+  if (result.unhealthy.length) process.exitCode = 1;
+}
+
 const commands = {
   attribute: cmdAttribute,
   conflicts: cmdConflicts,
   diff: cmdDiff,
   snapshot: cmdSnapshot,
+  deps: cmdDeps,
+  health: cmdHealth,
 };
 
 const args = parseArgs(process.argv.slice(2));
@@ -139,7 +198,11 @@ Commands:
   attribute   which layer introduced each row, and who patched it since
   conflicts   rows whose fields have multiple writers, and who wins
   diff        declared (static layers) vs actual (dump-config) tree
-  snapshot    content-addressed lockfile of the effective composition`);
+  snapshot    content-addressed lockfile of the effective composition
+  deps        service dependency graph from the live runtime snapshot
+  health      plugin lifecycle health from the live runtime snapshot
+
+deps/health need the plugin mounted: dsh plugin --profile web add dsh-xray`);
   process.exit(args._[0] ? 2 : 0);
 }
 try {
