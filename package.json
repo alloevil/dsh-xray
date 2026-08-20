@@ -32,7 +32,8 @@
     "test": "node --test tests/*.spec.js",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "check": "biome check . && node --test tests/*.spec.js"
+    "check": "biome check . && node --test tests/*.spec.js",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-lines=85 tests/*.spec.js"
   },
   "keywords": [
     "dsh-plugin",
