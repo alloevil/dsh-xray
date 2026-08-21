@@ -1,7 +1,7 @@
 {
   "name": "dsh-xray",
-  "version": "0.4.0",
-  "description": "X-ray for your DeepSeek Harness \u2014 see what's actually loaded, why, and what it costs you.",
+  "version": "0.4.1",
+  "description": "X-ray for your DeepSeek Harness — see what's actually loaded, why, and what it costs you.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alloevil/dsh-xray.git"
