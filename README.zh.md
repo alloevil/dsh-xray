@@ -18,7 +18,7 @@
 
 ![dsh-xray 演示](./docs/demo.svg)
 
-> **状态:0.6.x — 静态 + 运行时成像、上下文成本归因、Web 面板。** 静态命令在 dsh 起不来时照样能用;`deps`/`health`/`cost`/`shadow` 和 agent 工具需要插件已挂载。
+> 静态命令在 dsh 起不来时照样能用;`deps`/`health`/`cost`/`shadow` 和 agent 工具需要插件已挂载。
 
 `dsh --dump-config` 只给你原始组合树,插件面板只给你平铺列表。它们都不回答:这个插件*为什么*在这、停用它会*连带瘫掉什么*、它在*悄悄消耗什么*。dsh-xray 回答这些。
 
@@ -113,19 +113,19 @@ dsh-xray 只读不执行。patch 文件里的 loader `!!js` 表达式解析为�
 
 对运行中组合树的诊断成像——与 [dsh-doctor](https://www.npmjs.com/package/dsh-doctor)(救援与恢复)互补。
 
-0.4.x 已交付:
+已交付:
 
 - **来源归因** — 每个活跃插件来自哪一层:内核 bundle / profile 依赖 / `cordis.patch.yml` insert / repository 源
 - **声明 vs 实际 diff** — 装了但没生效、卸了但残留 patch 行
 - **冲突检测** — 多个插件 patch 同一配置行时,谁静默赢了
-- **组合快照** — 把当前生效组合导出为 lockfile,异地一键复现
+- **组合快照** — 把当前生效组合导出为 lockfile;`--against` 对比漂移
 - **服务依赖图** — 每个服务谁提供、谁消费;停用 X 会级联影响什么(`deps`)
 - **运行时健康** — 每个插件的 fiber 生命周期状态、启动失败、状态迁移史(`health`)
 - **Agent 自省** — `xray_composition` 工具让 agent 检视自己的能力集
-
 - **能力审计** — 对 out-of-tree 插件的启发式静态扫描:网络外发、shell、文件系统、环境变量、动态求值(`audit`)
 - **服务重名检测** — 被多个插件同时提供的服务,及每插件工具/命令注册数(`shadow`)
 - **上下文成本** — prompt sections(观测自 system-prompt/assemble)+ 工具 schema 的估算 token 占用(`cost`)
+- **Web 面板** — `/xray` 五视图,零依赖零构建
 
 ## 安装
 

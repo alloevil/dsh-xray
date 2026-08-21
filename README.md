@@ -27,7 +27,7 @@
 
 **dsh-xray does.**
 
-> **Status: 0.6.x — static + runtime imaging, context-cost attribution, and a web panel.** Static commands work even when dsh cannot boot; `deps`/`health`/`cost`/`shadow` and the agent tool need the plugin mounted.
+> Static commands work even when dsh cannot boot; `deps`/`health`/`cost`/`shadow` and the agent tool need the plugin mounted.
 
 ---
 
