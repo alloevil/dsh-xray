@@ -10,7 +10,7 @@
 
 [English](./README.md)
 
-> **状态:0.2.x — 静态 + 运行时成像。** 静态命令在 dsh 起不来时照样能用;`deps`/`health` 和 agent 工具需要插件已挂载。
+> **状态:0.4.x — 静态 + 运行时成像,含上下文成本归因。** 静态命令在 dsh 起不来时照样能用;`deps`/`health`/`cost`/`shadow` 和 agent 工具需要插件已挂载。
 
 `dsh --dump-config` 只给你原始组合树,插件面板只给你平铺列表。它们都不回答:这个插件*为什么*在这、停用它会*连带瘫掉什么*、它在*悄悄消耗什么*。dsh-xray 回答这些。
 
@@ -23,7 +23,7 @@ npx dsh-xray diff        # 声明(静态层)vs 实际(dump-config)组合树
 npx dsh-xray snapshot    # 当前生效组合的内容寻址 lockfile
 npx dsh-xray deps [svc]  # 服务依赖图:提供者、消费者、停用级联
 npx dsh-xray health      # 插件生命周期健康:失败 fiber、等待中的注入、状态迁移史
-npx dsh-xray cost        # 每个模型可见工具 schema 的估算 token 占用
+npx dsh-xray cost        # 上下文成本:prompt sections + 工具 schema 的估算 token 占用
 npx dsh-xray shadow      # 被多个插件同时提供的服务
 npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ```
@@ -99,7 +99,7 @@ dsh-xray 只读不执行。patch 文件里的 loader `!!js` 表达式解析为�
 
 对运行中组合树的诊断成像——与 [dsh-doctor](https://www.npmjs.com/package/dsh-doctor)(救援与恢复)互补。
 
-0.3.x 已交付:
+0.4.x 已交付:
 
 - **来源归因** — 每个活跃插件来自哪一层:内核 bundle / profile 依赖 / `cordis.patch.yml` insert / repository 源
 - **声明 vs 实际 diff** — 装了但没生效、卸了但残留 patch 行
@@ -111,7 +111,7 @@ dsh-xray 只读不执行。patch 文件里的 loader `!!js` 表达式解析为�
 
 - **能力审计** — 对 out-of-tree 插件的启发式静态扫描:网络外发、shell、文件系统、环境变量、动态求值(`audit`)
 - **服务重名检测** — 被多个插件同时提供的服务,及每插件工具/命令注册数(`shadow`)
-- **上下文成本** — 每个模型可见工具 schema 的估算 token 占用(`cost`)
+- **上下文成本** — prompt sections(观测自 system-prompt/assemble)+ 工具 schema 的估算 token 占用(`cost`)
 
 ## 安装
 

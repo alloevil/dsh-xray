@@ -27,7 +27,7 @@
 
 **dsh-xray does.**
 
-> **Status: 0.2.x — static + runtime imaging.** Static commands work even when dsh cannot boot; `deps`/`health` and the agent tool need the plugin mounted.
+> **Status: 0.4.x — static + runtime imaging with context-cost attribution.** Static commands work even when dsh cannot boot; `deps`/`health`/`cost`/`shadow` and the agent tool need the plugin mounted.
 
 ---
 
@@ -42,7 +42,7 @@ npx dsh-xray diff        # declared (static layers) vs actual (dump-config) tree
 npx dsh-xray snapshot    # content-addressed lockfile of the effective composition
 npx dsh-xray deps [svc]  # service dependency graph: providers, consumers, disable-cascade
 npx dsh-xray health      # plugin lifecycle health: failed fibers, pending injects, transitions
-npx dsh-xray cost        # estimated context-token cost per model-facing tool schema
+npx dsh-xray cost        # context cost: prompt sections + tool schemas, estimated tokens
 npx dsh-xray shadow      # services provided by multiple plugins
 npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touchpoints
 ```
