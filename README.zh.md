@@ -10,7 +10,7 @@
 
 [English](./README.md)
 
-> **状态:0.4.x — 静态 + 运行时成像,含上下文成本归因。** 静态命令在 dsh 起不来时照样能用;`deps`/`health`/`cost`/`shadow` 和 agent 工具需要插件已挂载。
+> **状态:0.6.x — 静态 + 运行时成像、上下文成本归因、Web 面板。** 静态命令在 dsh 起不来时照样能用;`deps`/`health`/`cost`/`shadow` 和 agent 工具需要插件已挂载。
 
 `dsh --dump-config` 只给你原始组合树,插件面板只给你平铺列表。它们都不回答:这个插件*为什么*在这、停用它会*连带瘫掉什么*、它在*悄悄消耗什么*。dsh-xray 回答这些。
 
@@ -90,6 +90,10 @@ orphan overrides (silently skipped) (1)
 ## Agent 工具
 
 挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow`),agent 可以自答"我有哪些能力 / 哪个插件提供 X / 为什么 Y 不可用"。
+
+## Web 面板
+
+在 `dsh web` 中挂载后,插件在 **`/xray`** 提供零依赖面板——summary、health、deps(含停用级联表)、cost、shadow 五个视图,数据实时来自运行中的组合树;`/xray/api/*` 提供同源 JSON。
 
 ## 安全立场
 

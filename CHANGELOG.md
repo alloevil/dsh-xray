@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 — 2026-08-21
+
+- Web panel at `/xray` (mounted when the profile composes a webServer):
+  summary, health, deps with the disable-cascade table, cost, and shadow
+  views, live per request from the running composition. Zero dependencies —
+  one self-contained HTML page plus `/xray/api/*` JSON endpoints; no React,
+  no client bundle, no build step. Headless profiles skip it silently.
+
 ## 0.5.0 — 2026-08-21
 
 - `snapshot --against <lockfile>`: compare the current composition against a

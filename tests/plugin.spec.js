@@ -12,6 +12,7 @@ let ctx;
 let registeredTool = null;
 let statusListener = null;
 let assembleListener = null;
+let panelRoutes = null;
 
 function makeFiber(name, state, effects = []) {
   return { uid: 1, name, state, getEffects: () => effects };
@@ -69,6 +70,16 @@ before(() => {
       return () => {};
     },
     plugin(obj) {
+      if (obj.name === 'dsh-xray-panel') {
+        // Panel wants webServer; simulate a host that provides one.
+        const registered = [];
+        obj.apply({
+          webServer: { register: (spec) => (registered.push(spec.path), () => {}) },
+          effect: (execute) => execute(),
+        });
+        panelRoutes = registered;
+        return;
+      }
       // The tool subplugin: run it immediately with a tools mock.
       obj.apply({ tools: { register: (def) => (registeredTool = def) } });
     },
@@ -127,6 +138,9 @@ test('apply() mounts, records transitions, and writes the snapshot on unload', a
   assert.equal(snap.tools[0].name, 'read_file');
   assert.equal(snap.promptAssembly.sections[0].name, 'deployment:persona');
   assert.equal(snap.promptAssembly.sections[0].tokens, 100); // 400 chars / 4
+  assert.ok(panelRoutes.includes('/xray'), 'panel page route mounted');
+  assert.ok(panelRoutes.includes('/xray/api/summary'), 'panel api routes mounted');
+  assert.equal(panelRoutes.length, 6); // page + 5 views
 });
 
 test('xray_composition execute returns every view from live ctx data', async (t) => {

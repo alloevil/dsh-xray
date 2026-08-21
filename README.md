@@ -27,7 +27,7 @@
 
 **dsh-xray does.**
 
-> **Status: 0.4.x — static + runtime imaging with context-cost attribution.** Static commands work even when dsh cannot boot; `deps`/`health`/`cost`/`shadow` and the agent tool need the plugin mounted.
+> **Status: 0.6.x — static + runtime imaging, context-cost attribution, and a web panel.** Static commands work even when dsh cannot boot; `deps`/`health`/`cost`/`shadow` and the agent tool need the plugin mounted.
 
 ---
 
@@ -78,6 +78,9 @@ Per-plugin fiber lifecycle state, startup failures, transition history.
 
 ### 🤖 Agent Self-Introspection
 The `xray_composition` tool lets agents inspect their own capability set.
+
+### 🖥️ Web Panel
+Mounted in `dsh web`, the plugin serves a zero-dependency panel at **`/xray`** — summary, health, deps (with the disable-cascade table), cost, and shadow views, live from the running composition. JSON endpoints under `/xray/api/*` serve the same data.
 
 What every request actually carries — prompt sections observed at assembly, blended with tool schemas:
 
