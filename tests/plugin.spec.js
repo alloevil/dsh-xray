@@ -11,6 +11,7 @@ let home;
 let ctx;
 let registeredTool = null;
 let statusListener = null;
+let assembleListener = null;
 
 function makeFiber(name, state, effects = []) {
   return { uid: 1, name, state, getEffects: () => effects };
@@ -64,6 +65,7 @@ before(() => {
     },
     on(event, listener) {
       if (event === 'internal/status') statusListener = listener;
+      if (event === 'system-prompt/assemble') assembleListener = listener;
       return () => {};
     },
     plugin(obj) {
@@ -99,7 +101,17 @@ test('apply() mounts, records transitions, and writes the snapshot on unload', a
   });
 
   assert.ok(statusListener, 'internal/status listener registered');
+  assert.ok(assembleListener, 'system-prompt/assemble listener registered');
   statusListener(makeFiber('Broken', 3)); // one FAILED transition
+  // Simulate one prompt assembly flowing through the waterfall unmodified.
+  const assembly = {
+    sections: [
+      { name: 'deployment:persona', text: 'x'.repeat(400) },
+      { name: 'skills', text: 'y'.repeat(200) },
+    ],
+  };
+  const passedThrough = await assembleListener(assembly, {}, async () => assembly);
+  assert.equal(passedThrough, assembly, 'assembly returned unmodified');
   dispose(); // unload → flushes the final snapshot synchronously
 
   const file = path.join(home, 'xray', 'runtime.json');
@@ -113,6 +125,8 @@ test('apply() mounts, records transitions, and writes the snapshot on unload', a
   ]);
   assert.ok(snap.services.some((s) => s.name === 'tools' && s.provider === 'ToolRuntime'));
   assert.equal(snap.tools[0].name, 'read_file');
+  assert.equal(snap.promptAssembly.sections[0].name, 'deployment:persona');
+  assert.equal(snap.promptAssembly.sections[0].tokens, 100); // 400 chars / 4
 });
 
 test('xray_composition execute returns every view from live ctx data', async (t) => {

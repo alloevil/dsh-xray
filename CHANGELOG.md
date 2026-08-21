@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 — 2026-08-21
+
+- `cost` now attributes **prompt sections**: the mounted plugin observes the
+  `system-prompt/assemble` waterfall (purely — the assembly passes through
+  unmodified) and records per-section token estimates alongside tool schemas.
+  Output separates section vs schema totals; empty state explains that one
+  agent message is needed before sections appear.
+- `xray_composition` summary and `cost` view carry the blended totals.
+- README: terminal demo image plus real `cost` output.
+
 ## 0.3.1 — 2026-08-20
 
 - Tests: plugin integration suite (mock Cordis ctx exercising apply, snapshot

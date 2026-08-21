@@ -6,6 +6,8 @@
 
 X-ray for your [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — see what's actually loaded, why, and what it costs you.
 
+![dsh-xray demo](./docs/demo.svg)
+
 [中文](./README.zh.md)
 
 > **Status: 0.2.x — static + runtime imaging.** Static commands work even when dsh cannot boot; `deps`/`health` and the agent tool need the plugin mounted.
@@ -61,6 +63,20 @@ session-query-sqlite
   .config: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
 tool-bash
   .disabled: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
+```
+
+What every request actually carries — prompt sections observed at assembly, blended with tool schemas:
+
+```console
+$ npx dsh-xray cost
+~1625 tokens: 1 tool schema(s) ~121 + 19 prompt section(s) ~1504
+
+# prompt sections (observed at last assembly):
+app:web-surface                  ~248     15.3%   ████████
+tool:goal                        ~184     11.3%   ██████
+tool:ralph                       ~109     6.7%    ███
+harness:source                   ~94      5.8%    ███
+...
 ```
 
 And when a patch row targets an id that doesn't exist (dsh skips it silently), `diff` catches it:

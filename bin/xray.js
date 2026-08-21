@@ -183,11 +183,25 @@ function cmdCost(args) {
   const result = model.contextCost(snap);
   if (args.json) return console.log(JSON.stringify(result, null, 2));
   console.log(
-    `~${result.totalTokens} tokens across ${result.toolCount} tool schema(s) (captured ${result.capturedAt})\n`,
+    `~${result.totalTokens} tokens: ${result.toolCount} tool schema(s) ~${result.toolTokens} + ${result.sectionCount} prompt section(s) ~${result.sectionTokens} (captured ${result.capturedAt})\n`,
   );
+  const bar = (share) => '█'.repeat(Math.max(1, Math.round(share / 2)));
+  if (result.sections.length) {
+    console.log('# prompt sections (observed at last assembly):');
+    for (const s of result.sections) {
+      console.log(
+        `${pad(s.name, 32)} ${pad(`~${s.tokens}`, 8)} ${pad(`${s.share}%`, 7)} ${bar(s.share)}`,
+      );
+    }
+    console.log();
+  } else {
+    console.log('# no prompt assembly observed yet — send one agent message first\n');
+  }
+  console.log('# tool schemas:');
   for (const t of result.tools) {
-    const bar = '█'.repeat(Math.max(1, Math.round(t.share / 2)));
-    console.log(`${pad(t.name, 28)} ${pad(`~${t.tokens}`, 8)} ${pad(`${t.share}%`, 7)} ${bar}`);
+    console.log(
+      `${pad(t.name, 32)} ${pad(`~${t.tokens}`, 8)} ${pad(`${t.share}%`, 7)} ${bar(t.share)}`,
+    );
   }
 }
 
