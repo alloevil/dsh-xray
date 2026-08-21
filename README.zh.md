@@ -1,14 +1,22 @@
-# dsh-xray
+<p align="center">
+  <img src="./assets/hero.svg" width="100%" alt="dsh-xray — 给你的 DeepSeek Harness 拍 X 光">
+</p>
 
-[![npm](https://img.shields.io/npm/v/dsh-xray)](https://www.npmjs.com/package/dsh-xray)
-[![CI](https://github.com/alloevil/dsh-xray/actions/workflows/check.yml/badge.svg)](https://github.com/alloevil/dsh-xray/actions/workflows/check.yml)
-[![license](https://img.shields.io/npm/l/dsh-xray)](./LICENSE)
+<p align="center">
+  <a href="https://www.npmjs.com/package/dsh-xray"><img src="https://img.shields.io/npm/v/dsh-xray?style=flat-square&color=00d4aa" alt="npm"></a>
+  <a href="https://github.com/alloevil/dsh-xray/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/alloevil/dsh-xray/check.yml?style=flat-square&label=CI" alt="CI"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/npm/l/dsh-xray?style=flat-square" alt="license"></a>
+</p>
 
-给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 拍 X 光——看清到底加载了什么、为什么在那、以及它悄悄花掉了你什么。
+<p align="center">
+  <strong>给 <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a> 拍 X 光</strong>——看清到底加载了什么、为什么在那、以及它悄悄花掉了你什么。
+</p>
+
+<p align="center">
+  <a href="./README.md">English</a>
+</p>
 
 ![dsh-xray 演示](./docs/demo.svg)
-
-[English](./README.md)
 
 > **状态:0.6.x — 静态 + 运行时成像、上下文成本归因、Web 面板。** 静态命令在 dsh 起不来时照样能用;`deps`/`health`/`cost`/`shadow` 和 agent 工具需要插件已挂载。
 
@@ -94,6 +102,8 @@ orphan overrides (silently skipped) (1)
 ## Web 面板
 
 在 `dsh web` 中挂载后,插件在 **`/xray`** 提供零依赖面板——summary、health、deps(含停用级联表)、cost、shadow 五个视图,数据实时来自运行中的组合树;`/xray/api/*` 提供同源 JSON。
+
+![/xray 面板:deps 视图与停用级联表](./assets/panel-deps.webp)
 
 ## 安全立场
 

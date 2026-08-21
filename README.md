@@ -82,6 +82,8 @@ The `xray_composition` tool lets agents inspect their own capability set.
 ### 🖥️ Web Panel
 Mounted in `dsh web`, the plugin serves a zero-dependency panel at **`/xray`** — summary, health, deps (with the disable-cascade table), cost, and shadow views, live from the running composition. JSON endpoints under `/xray/api/*` serve the same data.
 
+![The /xray panel: deps view with the disable-cascade table](./assets/panel-deps.webp)
+
 What every request actually carries — prompt sections observed at assembly, blended with tool schemas:
 
 ```console
