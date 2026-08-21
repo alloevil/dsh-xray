@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.4.0 — 2026-08-21
+## 0.5.0 — 2026-08-21
+
+- `snapshot --against <lockfile>`: compare the current composition against a
+  saved snapshot — bundle version/patch drift, patch-layer content changes,
+  package add/remove/version, composed-tree hash. Exits 1 on drift.
+- Repository-source attribution: `.dsh-plugin` directories under the harness
+  home are collected as a fourth layer kind (`repository`), so rows they
+  insert attribute to the repository plugin that owns them.
+- Validated end-to-end with a live model: an agent called `xray_composition`
+  in a real conversation and reported the composition summary.
+
+## 0.4.1 — 2026-08-21
 
 - `cost` now attributes **prompt sections**: the mounted plugin observes the
   `system-prompt/assemble` waterfall (purely — the assembly passes through

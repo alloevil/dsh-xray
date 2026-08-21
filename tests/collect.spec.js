@@ -37,6 +37,22 @@ before(() => {
     "- insert:\n    - id: a\n      name: plugin-a\n      config:\n        root: !!js dshHomePath('x')\n",
   );
   fs.writeFileSync(path.join(profile, 'cordis.patch.yml'), '- id: a\n  disabled: true\n');
+
+  // Repository plugin fixture (.dsh-plugin mechanism)
+  const repoDir = path.join(home, '.dsh-plugin', 'my-repo-plugin');
+  fs.mkdirSync(repoDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, 'package.json'),
+    JSON.stringify({
+      name: 'my-repo-plugin',
+      version: '2.0.0',
+      dsh: { bundle: { patch: './cordis.patch.yml' } },
+    }),
+  );
+  fs.writeFileSync(
+    path.join(repoDir, 'cordis.patch.yml'),
+    '- insert:\n    - id: repo-row\n      name: my-repo-plugin\n',
+  );
 });
 
 after(() => {
@@ -51,7 +67,7 @@ test('collectStatic reads bundle and profile layers in order, with warnings', ()
 
   assert.deepEqual(
     data.layers.map((l) => l.kind),
-    ['bundle', 'profile-patch'],
+    ['bundle', 'profile-patch', 'repository'],
   );
   assert.equal(data.layers[0].name, '@fixture/bundle-a');
   assert.equal(data.layers[0].version, '1.2.3');
@@ -80,4 +96,7 @@ test('end-to-end: attribute over the fixture home', () => {
     a.overrides.map((o) => o.kind),
     ['profile-patch'],
   );
+  const repo = result.rows.find((r) => r.id === 'repo-row');
+  assert.equal(repo.origin.kind, 'repository');
+  assert.equal(repo.origin.layer, 'my-repo-plugin');
 });

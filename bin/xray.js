@@ -12,6 +12,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--profile' || a === '-p') args.profile = argv[++i];
+    else if (a === '--against') args.against = argv[++i];
     else if (a === '--json') args.json = true;
     else args._.push(a);
   }
@@ -118,7 +119,44 @@ function cmdDiff(args) {
 function cmdSnapshot(args) {
   const data = collectStatic(args.profile);
   const { dump } = tryDump(args.profile);
-  console.log(JSON.stringify(model.snapshot(data, dump), null, 2));
+  const current = model.snapshot(data, dump);
+  const againstFile = args.against;
+  if (!againstFile) return console.log(JSON.stringify(current, null, 2));
+
+  const fs = require('node:fs');
+  const { compareSnapshots } = require('../lib/compare.js');
+  const saved = JSON.parse(fs.readFileSync(againstFile, 'utf8'));
+  const result = compareSnapshots(saved, current);
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+
+  if (result.identical) {
+    return console.log(`composition identical to snapshot from ${result.savedAt}`);
+  }
+  console.log(`composition drifted from snapshot (${result.savedAt}):`);
+  for (const b of result.changes.bundles) {
+    if (b.change === 'added') console.log(`  bundle + ${b.name}@${b.version}`);
+    else if (b.change === 'removed') console.log(`  bundle - ${b.name}`);
+    else
+      console.log(
+        `  bundle ~ ${b.name}: ${b.change} ${b.from.version ?? b.from.patchHash} → ${b.to.version ?? b.to.patchHash}`,
+      );
+  }
+  for (const p of result.changes.patches) {
+    console.log(
+      `  patch ${p.change === 'added' ? '+' : p.change === 'removed' ? '-' : '~'} ${p.kind}${p.change === 'content' ? `: ${p.from} → ${p.to}` : ''}`,
+    );
+  }
+  for (const p of result.changes.packages) {
+    if (p.change === 'added') console.log(`  package + ${p.name}@${p.version}`);
+    else if (p.change === 'removed') console.log(`  package - ${p.name}`);
+    else console.log(`  package ~ ${p.name}: ${p.from} → ${p.to}`);
+  }
+  if (result.changes.composed) {
+    console.log(
+      `  composed tree hash: ${result.changes.composed.from} → ${result.changes.composed.to}`,
+    );
+  }
+  process.exitCode = 1;
 }
 
 function readRuntimeSnapshot() {
@@ -266,7 +304,7 @@ Commands:
   attribute   which layer introduced each row, and who patched it since
   conflicts   rows whose fields have multiple writers, and who wins
   diff        declared (static layers) vs actual (dump-config) tree
-  snapshot    content-addressed lockfile of the effective composition
+  snapshot    content-addressed lockfile; --against <file> diffs a saved one
   deps        service dependency graph from the live runtime snapshot
   health      plugin lifecycle health from the live runtime snapshot
   cost        estimated context-token cost of each model-facing tool schema
