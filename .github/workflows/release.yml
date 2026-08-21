@@ -5,6 +5,7 @@ on:
 permissions:
   contents: write
   id-token: write # npm provenance
+  attestations: write # release artifact attestation
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -25,6 +26,11 @@ jobs:
         run: |
           node scripts/changelog-notes.cjs "${GITHUB_REF_NAME#v}" > /tmp/notes.md \
             || echo "See CHANGELOG.md." > /tmp/notes.md
-          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file /tmp/notes.md --verify-tag
+          npm pack
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file /tmp/notes.md --verify-tag dsh-xray-*.tgz
         env:
           GH_TOKEN: ${{ github.token }}
+      - name: Attest release artifact
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: dsh-xray-*.tgz

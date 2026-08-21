@@ -3,6 +3,8 @@ on:
   push:
     branches: [master]
   pull_request:
+permissions:
+  contents: read
 concurrency:
   group: check-${{ github.ref }}
   cancel-in-progress: true
