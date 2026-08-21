@@ -172,6 +172,10 @@ function readRuntimeSnapshot() {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
+function panelHint(args) {
+  if (!args.json) console.log('\nlive panel: http://localhost:3080/xray');
+}
+
 function cmdDeps(args) {
   const snap = readRuntimeSnapshot();
   const result = model.serviceGraph(snap);
@@ -196,6 +200,7 @@ function cmdDeps(args) {
     console.log(`\n! ${result.unsatisfied.length} unsatisfied inject(s):`);
     for (const u of result.unsatisfied) console.log(`  ${u.plugin} wants ${u.service}`);
   }
+  panelHint(args);
 }
 
 function cmdHealth(args) {
@@ -214,6 +219,7 @@ function cmdHealth(args) {
     }
   }
   if (result.unhealthy.length) process.exitCode = 1;
+  panelHint(args);
 }
 
 function cmdCost(args) {
@@ -241,6 +247,7 @@ function cmdCost(args) {
       `${pad(t.name, 32)} ${pad(`~${t.tokens}`, 8)} ${pad(`${t.share}%`, 7)} ${bar(t.share)}`,
     );
   }
+  panelHint(args);
 }
 
 function cmdShadow(args) {
@@ -258,6 +265,7 @@ function cmdShadow(args) {
     }
   }
   if (result.services.length) process.exitCode = 1;
+  panelHint(args);
 }
 
 function cmdAudit(args) {

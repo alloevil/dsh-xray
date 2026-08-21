@@ -138,9 +138,30 @@ Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summa
   <img src="./assets/section-install.svg" width="100%" alt="Install">
 </p>
 
+Two ways to use it — they're independent:
+
+**1. Static CLI only** (no install into dsh; works even when dsh cannot boot):
+
+```sh
+npx dsh-xray attribute        # requires Node >= 22
+```
+
+**2. Mount the plugin** (adds the runtime commands, the `/xray` panel, and the agent tool):
+
 ```sh
 dsh plugin --profile web add dsh-xray
+# bundle plugins take effect on the next start — restart dsh web
 ```
+
+Verify it took:
+
+```sh
+dsh --profile web --dump-config | grep dsh-xray   # row present in the composed tree
+npx dsh-xray health                               # reads the runtime snapshot
+# then open http://localhost:3080/xray for the live panel
+```
+
+Uninstall: `dsh plugin --profile web remove dsh-xray`.
 
 All commands take `--profile <name>` (default `web`) and `--json`.
 

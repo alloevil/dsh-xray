@@ -131,9 +131,30 @@ dsh-xray 只读不执行。patch 文件里的 loader `!!js` 表达式解析为�
 
 ## 安装
 
+两条使用路径,互相独立:
+
+**1. 只用静态 CLI**(不装进 dsh;dsh 起不来时也能用):
+
+```sh
+npx dsh-xray attribute        # 需要 Node >= 22
+```
+
+**2. 挂载插件**(解锁运行时命令、`/xray` 面板和 agent 工具):
+
 ```sh
 dsh plugin --profile web add dsh-xray
+# bundle 插件重启后生效——重启 dsh web
 ```
+
+验证装好了:
+
+```sh
+dsh --profile web --dump-config | grep dsh-xray   # 组合树里有这一行
+npx dsh-xray health                               # 能读到运行时快照
+# 然后打开 http://localhost:3080/xray 看实时面板
+```
+
+卸载:`dsh plugin --profile web remove dsh-xray`。
 
 ## 许可证
 
