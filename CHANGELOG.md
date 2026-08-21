@@ -21,6 +21,11 @@
 
 ## 0.4.1 — 2026-08-21
 
+- Ship `assets/` (README hero and section headers) in the npm tarball so the
+  package page renders them; no code change.
+
+## 0.4.0 — 2026-08-21
+
 - `cost` now attributes **prompt sections**: the mounted plugin observes the
   `system-prompt/assemble` waterfall (purely — the assembly passes through
   unmodified) and records per-section token estimates alongside tool schemas.
@@ -28,6 +33,11 @@
   agent message is needed before sections appear.
 - `xray_composition` summary and `cost` view carry the blended totals.
 - README: terminal demo image plus real `cost` output.
+
+## 0.3.2 — 2026-08-20
+
+- README: real-output demo sections for `attribute`/`deps`/`conflicts`/`diff`;
+  npm keywords extended for directory-site discovery. No code change.
 
 ## 0.3.1 — 2026-08-20
 
