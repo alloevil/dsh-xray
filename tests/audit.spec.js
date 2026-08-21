@@ -58,6 +58,25 @@ test('contextCost sorts by tokens and computes shares', () => {
   assert.equal(out.tools[0].share, 75);
 });
 
+test('contextCost blends prompt sections into the total', () => {
+  const out = contextCost({
+    capturedAt: 'now',
+    tools: [{ name: 'tool-a', tokens: 100 }],
+    promptAssembly: {
+      at: 123,
+      sections: [
+        { name: 'deployment:persona', tokens: 200 },
+        { name: 'skills', tokens: 100 },
+      ],
+    },
+  });
+  assert.equal(out.totalTokens, 400);
+  assert.equal(out.sectionTokens, 300);
+  assert.equal(out.sections[0].name, 'deployment:persona');
+  assert.equal(out.sections[0].share, 50);
+  assert.equal(out.promptObservedAt, 123);
+});
+
 test('contextCost tolerates a snapshot without tools', () => {
   const out = contextCost({ capturedAt: 'now' });
   assert.equal(out.totalTokens, 0);

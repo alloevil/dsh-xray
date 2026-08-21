@@ -17,6 +17,8 @@
   <a href="./README.zh.md">🇨🇳 中文文档</a>
 </p>
 
+![dsh-xray demo](./docs/demo.svg)
+
 ---
 
 ## The Problem
@@ -76,6 +78,22 @@ Per-plugin fiber lifecycle state, startup failures, transition history.
 
 ### 🤖 Agent Self-Introspection
 The `xray_composition` tool lets agents inspect their own capability set.
+
+What every request actually carries — prompt sections observed at assembly, blended with tool schemas:
+
+```console
+$ npx dsh-xray cost
+~1625 tokens: 1 tool schema(s) ~121 + 19 prompt section(s) ~1504
+
+# prompt sections (observed at last assembly):
+app:web-surface                  ~248     15.3%   ████████
+tool:goal                        ~184     11.3%   ██████
+tool:ralph                       ~109     6.7%    ███
+harness:source                   ~94      5.8%    ███
+...
+```
+
+And when a patch row targets an id that doesn't exist (dsh skips it silently), `diff` catches it:
 
 ### 🛡️ Capability Audit
 Heuristic static scan: network egress, shell, filesystem, env, eval.

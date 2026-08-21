@@ -6,6 +6,8 @@
 
 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 拍 X 光——看清到底加载了什么、为什么在那、以及它悄悄花掉了你什么。
 
+![dsh-xray 演示](./docs/demo.svg)
+
 [English](./README.md)
 
 > **状态:0.2.x — 静态 + 运行时成像。** 静态命令在 dsh 起不来时照样能用;`deps`/`health` 和 agent 工具需要插件已挂载。
@@ -61,6 +63,20 @@ session-query-sqlite
   .config: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
 tool-bash
   .disabled: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
+```
+
+每次请求实际携带什么——assembly 时观测到的 prompt sections,与工具 schema 合并计价:
+
+```console
+$ npx dsh-xray cost
+~1625 tokens: 1 tool schema(s) ~121 + 19 prompt section(s) ~1504
+
+# prompt sections (observed at last assembly):
+app:web-surface                  ~248     15.3%   ████████
+tool:goal                        ~184     11.3%   ██████
+tool:ralph                       ~109     6.7%    ███
+harness:source                   ~94      5.8%    ███
+...
 ```
 
 patch 行指向不存在的 id 时(dsh 静默跳过),`diff` 能抓到:
