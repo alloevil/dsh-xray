@@ -23,3 +23,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm coverage
+      - name: Generate lcov
+        run: node --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage.lcov --test-reporter=spec --test-reporter-destination=stdout tests/*.spec.js
+      - uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
+        if: matrix.node == 22
+        with:
+          files: coverage.lcov
+          fail_ci_if_error: false
