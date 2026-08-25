@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.7.0 — 2026-08-25
+
+- Client half (`dsh.client` declaration + `exports["./client"]`): the host
+  discovers the bundle automatically and mounts an **X-ray tab beside
+  Chat / Trajectory** in every session — the five views rendered natively
+  in the GUI with host design tokens. Thin renderer over the existing
+  `/xray/api/*` endpoints; all computation stays in `lib/model.js`.
+- The tab survives what it diagnoses: a view switch renders the stale
+  payload as loading instead of throwing (React unmounts a throwing
+  subtree — the original "tab disappears on click" bug), and each view
+  renderer is wrapped so one bad payload reports inline instead of taking
+  the panel down.
+- The standalone `/xray` page stays as the degradation path: it needs only
+  the web server, not the client-module pipeline it helps diagnose.
+
 ## 0.6.0 — 2026-08-21
 
 - Web panel at `/xray` (mounted when the profile composes a webServer):
