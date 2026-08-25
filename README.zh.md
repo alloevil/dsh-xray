@@ -105,6 +105,8 @@ orphan overrides (silently skipped) (1)
 
 在 `dsh web` 中挂载后,插件在 **`/xray`** 提供零依赖面板——summary、health、deps(含停用级联表)、cost、shadow 五个视图,数据实时来自运行中的组合树;`/xray/api/*` 提供同源 JSON。
 
+包同时携带 client 半(`dsh.client` 声明 + `exports["./client"]`):宿主自动发现并在每个会话中挂载 **与 Chat / Trajectory 并列的 X-ray 标签页**,用宿主设计变量原生渲染同样五个视图。独立的 `/xray` 页面保留为降级通道——它只依赖 web 服务器,不依赖它所诊断的 client-module 加载链路。
+
 ![/xray 面板:deps 视图与停用级联表](./assets/panel-deps.webp)
 
 ## 安全立场

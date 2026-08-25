@@ -84,6 +84,8 @@ The `xray_composition` tool lets agents inspect their own capability set.
 ### 🖥️ Web Panel
 Mounted in `dsh web`, the plugin serves a zero-dependency panel at **`/xray`** — summary, health, deps (with the disable-cascade table), cost, and shadow views, live from the running composition. JSON endpoints under `/xray/api/*` serve the same data.
 
+The package also ships a client half (`dsh.client` declaration + `exports["./client"]`): the host discovers it automatically and mounts an **X-ray tab beside Chat / Trajectory** in every session, rendering the same five views natively in the GUI with the host's design tokens. The standalone `/xray` page stays available as the degradation path — it only needs the web server, not the client-module pipeline it helps diagnose.
+
 ![The /xray panel: deps view with the disable-cascade table](./assets/panel-deps.webp)
 
 What every request actually carries — prompt sections observed at assembly, blended with tool schemas:
