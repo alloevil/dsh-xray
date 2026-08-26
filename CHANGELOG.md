@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.7.1 — 2026-08-25
+
+- Tab panel, dark mode: the active view button was white-on-white —
+  `--dsw-alias-brand-primary` resolves to near-white in the dark theme, not
+  brand blue. Active state now uses the host's own tab-active family
+  (`--dsw-alias-state-business-*`), visible in both themes; error/success
+  text switched to tokens that actually exist (`--dsw-alias-state-error/
+  success-primary`) with fallbacks — `label-error`/`label-success` were
+  silently undefined.
+- Tab panel, layout stability: switching views no longer collapses the
+  body to a one-line loading row and re-expands. The previous view's
+  content stays rendered (dimmed, `.xray-stale`) until the next payload
+  lands, so the layout moves once per click; `min-height` on the body
+  pads the short views against the tall ones.
+
 ## 0.7.0 — 2026-08-25
 
 - Client half (`dsh.client` declaration + `exports["./client"]`): the host
