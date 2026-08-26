@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.2 — 2026-08-25
+
+- Tab panel owns its scrolling: the panel fills the host view area as a
+  flex column and scrolls inside `.xray-body`, instead of growing the
+  host session scrollport. Switching to a tall view (deps/cost/shadow)
+  no longer moves the page-level scroll position, and the view buttons
+  stay pinned above the fold. Supersedes 0.7.1's `min-height` padding,
+  which capped the collapse but not the expansion.
+
 ## 0.7.1 — 2026-08-25
 
 - Tab panel, dark mode: the active view button was white-on-white —
