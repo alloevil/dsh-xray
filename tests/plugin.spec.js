@@ -140,7 +140,8 @@ test('apply() mounts, records transitions, and writes the snapshot on unload', a
   assert.equal(snap.promptAssembly.sections[0].tokens, 100); // 400 chars / 4
   assert.ok(panelRoutes.includes('/xray'), 'panel page route mounted');
   assert.ok(panelRoutes.includes('/xray/api/summary'), 'panel api routes mounted');
-  assert.equal(panelRoutes.length, 6); // page + 5 views
+  assert.ok(panelRoutes.includes('/xray/api/entry'), 'entry inspection route mounted');
+  assert.equal(panelRoutes.length, 7); // page + 5 views + entry
 });
 
 test('xray_composition execute returns every view from live ctx data', async (t) => {

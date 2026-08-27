@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.8.0 — 2026-08-26
+
+**Context attribution** — the cost view now answers "who put this here":
+
+- Every prompt section and tool schema is attributed to the plugin that
+  registered it, via a diff-based observer over `system-prompt/change` /
+  `tools/change` (effect metadata carries only a label, so the name→plugin
+  join is reconstructed by watching name-set and per-fiber effect counts
+  move together). Pre-existing entries reconcile by stem affinity with an
+  exact effect-count check; anything ambiguous stays `unattributed` rather
+  than guessed.
+- New "by plugin" rollup in the cost view: each plugin's per-request
+  context tax (sections + schemas + tokens + share).
+- Tool snapshot now walks agent-scoped layers too (tool plugins mount
+  under each agent's scope), fixing both the tool count and attribution
+  coverage.
+
+**Entry inspection** — the answer to "what exactly is this ~N tokens":
+
+- `/xray/api/entry?kind=section|tool&name=…` returns one entry's live
+  text (sections resolved, tool schemas as JSON) with a chars/tokens/
+  estimator ruler. Computed per request from the live registries, never
+  persisted; returns composition-layer text only, never session messages
+  (boundary documented in SECURITY.md).
+- Section and tool names in the cost tab are clickable: a modal shows the
+  raw text behind the number.
+
+**Explanations & locale** (tab panel):
+
+- Every view opens with a one-line "what am I looking at" intro; column
+  headers and terms carry plain-language tooltips; empty states give the
+  next action.
+- Full zh/en locale support through the host locale service
+  (`ctx.locale.register` + slot `locale`): all copy follows the GUI
+  language setting instantly. The standalone `/xray` page stays English
+  by design (degradation path; zh docs live in README.zh).
+
 ## 0.7.2 — 2026-08-25
 
 - Tab panel owns its scrolling: the panel fills the host view area as a

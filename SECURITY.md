@@ -18,3 +18,7 @@ Do not open a public issue for security reports.
   never-evaluated markers, and the CLI never executes plugin code.
 - The mounted plugin writes only under `$DSH_HOME/xray/` and registers one
   read-only tool; it takes no network, shell, or session access.
+- The `/xray/api/entry` endpoint returns composition-layer text only — the
+  prompt sections and tool schemas plugins contribute to every request,
+  computed live per request and never persisted. It never returns session
+  messages or any user conversation content.
