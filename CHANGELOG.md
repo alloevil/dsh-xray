@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.1 — 2026-08-26
+
+- Summary's "context tokens" row is now a link that jumps to the cost
+  view — the number itself is the entry point to the breakdown.
+- "By plugin" rows unfold: a plugin has no single text — its cost is the
+  sum of the entries it registered, so clicking the row lists them
+  (kind · name · tokens), each linking to its raw text. Completes the
+  drill-down: plugin rollup → entry list → exact text.
+- The conversation tab label is now Title-Case "X-Ray" (was "X-ray"),
+  localized "X 光" in Chinese, resolved per render through the host
+  locale service like the built-in tabs.
+
 ## 0.8.0 — 2026-08-26
 
 **Context attribution** — the cost view now answers "who put this here":
