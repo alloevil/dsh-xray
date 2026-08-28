@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.9.0 — 2026-08-28
+
+**Skill cost view** — a sixth view answering "what does each skill cost me":
+
+- Every skill is priced twice: its **catalog line** (rides every request in
+  the durable session catalog once any model-invocable skill exists,
+  rendered exactly as dsh-tool-skill renders it) and its **body** (billed
+  per load, then resident in history). User-only skills
+  (`disable-model-invocation`) are listed but correctly excluded from the
+  resident tax; the fixed catalog framing is priced separately.
+- Observation piggybacks on the assemble waterfall with the assembling
+  agent's scope and session cwd — the filesystem provider's user/project
+  roots resolve correctly, throttled to one refresh in flight, last-good
+  state retained on failure. Nothing is persisted beyond names and token
+  counts.
+- All three surfaces: X-Ray tab + `/xray` page (new `skills` view, zh/en),
+  `/xray/api/skills`, and the `xray_composition` tool (`view: skills`).
+- Deliberately read-only: pricing, not toggling. Enabling/disabling skills
+  belongs to the ecosystem's skill managers (e.g.
+  `@linxin666/dsh-client-ui-skill-explorer`) — xray tells you what a skill
+  costs; a manager flips the switch.
+
 ## 0.8.1 — 2026-08-26
 
 - Summary's "context tokens" row is now a link that jumps to the cost

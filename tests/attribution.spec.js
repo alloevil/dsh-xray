@@ -271,3 +271,101 @@ test('snapshotEntry resolves a function-valued section text', () => {
   };
   assert.equal(snapshotEntry(ctx, 'section', 'dyn').text, 'computed');
 });
+
+// -- skill cost --------------------------------------------------------------
+
+test('skillCost prices catalog lines and totals resident tax', () => {
+  const { skillCost } = require('../lib/model.js');
+  const snap = {
+    capturedAt: 'now',
+    skillCatalog: {
+      capturedAt: 'then',
+      catalogOverheadTokens: 100,
+      skills: [
+        {
+          name: 'deploy',
+          provider: 'filesystem',
+          source: 'user',
+          modelInvocable: true,
+          catalogTokens: 30,
+          bodyTokens: 500,
+        },
+        {
+          name: 'review',
+          provider: 'filesystem',
+          source: 'project',
+          modelInvocable: true,
+          catalogTokens: 20,
+          bodyTokens: null,
+        },
+        {
+          name: 'manual-only',
+          provider: 'runtime',
+          source: 'runtime',
+          modelInvocable: false,
+          catalogTokens: 10,
+          bodyTokens: 40,
+        },
+      ],
+    },
+  };
+  const out = skillCost(snap);
+  assert.equal(out.available, true);
+  assert.equal(out.totals.count, 3);
+  assert.equal(out.totals.invocable, 2);
+  assert.equal(out.totals.catalogEntryTokens, 50); // user-only excluded
+  assert.equal(out.totals.residentTokens, 150); // entries + framing
+  assert.equal(out.skills[0].name, 'deploy'); // sorted by catalogTokens desc
+  assert.equal(out.skills[1].bodyTokens, null); // unreadable body stays null
+});
+
+test('skillCost degrades cleanly without an observation', () => {
+  const { skillCost } = require('../lib/model.js');
+  const out = skillCost({ capturedAt: 'now' });
+  assert.equal(out.available, false);
+  assert.deepEqual(out.skills, []);
+});
+
+test('snapshotSkills prices the live catalog shape', async () => {
+  const { snapshotSkills } = require('../lib/collect/runtime.js');
+  const ctx = {
+    get: (name) =>
+      name === 'skills'
+        ? {
+            list: async () => [
+              {
+                name: 'alpha',
+                description: 'does alpha things  with   spaces',
+                provider: 'fs',
+                source: 'user',
+                invocation: {},
+              },
+              {
+                name: 'beta',
+                description: 'x'.repeat(300),
+                provider: 'fs',
+                source: 'project',
+                invocation: { modelInvocable: false },
+              },
+            ],
+            get: async (n) => (n === 'alpha' ? { content: 'full body '.repeat(50) } : undefined),
+          }
+        : null,
+  };
+  const out = await snapshotSkills(ctx);
+  assert.equal(out.skills.length, 2);
+  const alpha = out.skills.find((s) => s.name === 'alpha');
+  assert.ok(alpha.catalogLine.includes('- `alpha`: does alpha things with spaces')); // whitespace normalized
+  assert.ok(alpha.bodyTokens > 0);
+  assert.equal(alpha.modelInvocable, true);
+  const beta = out.skills.find((s) => s.name === 'beta');
+  assert.ok(beta.catalogLine.endsWith('...')); // truncated at maxLength
+  assert.equal(beta.modelInvocable, false);
+  assert.equal(beta.bodyTokens, null); // get returned undefined
+  assert.ok(out.catalogOverheadTokens > 50);
+});
+
+test('snapshotSkills returns null without a skills service', async () => {
+  const { snapshotSkills } = require('../lib/collect/runtime.js');
+  assert.equal(await snapshotSkills({ get: () => null }), null);
+});

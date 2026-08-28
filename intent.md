@@ -83,6 +83,23 @@ client.js 走宿主 locale 体系(`ctx.locale.register('xray', {zh, en})`
   prompt/schema),绝不返回会话消息。
 - 不做:原文落盘、全文搜索、diff(需求出现再议)。
 
+## 一期附加 4:skill 成本视角(拍板 2026-08-28)
+
+回答"每个 skill 让我付多少上下文税"——纯只读,与生态里的
+skill-explorer(@linxin666/dsh-client-ui-skill-explorer,负责浏览/
+插拔/增删)互补,不做任何操作型功能。
+
+- 数据:`ctx.skills.list()` 取 catalog(名字/描述/provider/是否
+  model-invocable);计算每个 skill 的 catalog 行 token(名字+截断
+  描述,常驻每次请求)与正文 token 预估(get 到的完整渲染文本,
+  按需现算不落盘);
+- 展示:cost 视图新增 skills 小节(或独立表):skill × provider ×
+  catalog 行 token × 正文 token × invocable;头部汇总"catalog 常驻
+  税合计";条目名可点看 catalog 行原文,正文大小仅显示数字;
+- CLI/tool/API 三出口同步;
+- 明确不做:启用/禁用/增删(skill-explorer 的地盘);skill 正文
+  落盘;skill 调用历史统计(归二期逐请求账单)。
+
 ## 二期:逐请求账单(一期验收后再开工)
 
 ### 目标
