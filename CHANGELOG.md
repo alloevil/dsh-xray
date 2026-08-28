@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.10.0 — 2026-08-28
+
+**Per-request ledger** — the time axis the static cost view lacks. A
+seventh view (`requests`) records one classified bill per LLM call:
+
+- Categories per request: system prompt, tool schemas, conversation
+  history, tool results — with tool results aggregated per tool (the
+  call-id → tool-name join reconstructed from the preceding assistant
+  tool-call blocks), so "which tool is eating my context" reads directly
+  off the row.
+- **Δprev** — total against the previous request in the session; the
+  growth curve of your context, one number per call.
+- **Prefix stability** — ⚡ when system + tool schemas are byte-identical
+  to the previous request (KV-cache-friendly), ✂ when the prefix broke.
+  Compared by content hash; no text retained.
+- `purpose` tags auxiliary calls (compaction, session-title) apart from
+  chat; entries ring-buffer per session (50 × 20 sessions).
+- Purely observational: the `llm/stream` payload passes through
+  untouched, and nothing beyond counts, names, and hashes is stored —
+  never message text.
+- All three surfaces: X-Ray tab + `/xray` page (zh/en),
+  `/xray/api/requests`, and `xray_composition` (`view: requests`).
+
 ## 0.9.1 — 2026-08-28
 
 - Docs & discoverability: README (en/zh) documents the skill cost view;
