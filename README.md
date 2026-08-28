@@ -13,6 +13,8 @@
 
 <p align="center">
   <strong>X-ray for your <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a></strong> — see what's actually loaded, why, and what it costs you.
+  <br>
+  <em>LLM context-cost observability: token attribution per plugin, prompt-section and tool-schema pricing, skill catalog tax, dependency cascades.</em>
 </p>
 
 <p align="center">

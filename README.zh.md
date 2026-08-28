@@ -12,6 +12,8 @@
 
 <p align="center">
   <strong>给 <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a> 拍 X 光</strong>——看清到底加载了什么、为什么在那、以及它悄悄花掉了你什么。
+  <br>
+  <em>LLM 上下文成本可观测:按插件归因 token、prompt section 与工具 schema 计价、skill catalog 常驻税、依赖停用级联。</em>
 </p>
 
 <p align="center">
