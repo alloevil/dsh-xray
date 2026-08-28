@@ -18,13 +18,59 @@
   <a href="./README.md">English</a>
 </p>
 
-![dsh-xray 演示](./docs/demo.svg)
+---
 
-> 静态命令在 dsh 起不来时照样能用;`deps`/`health`/`cost`/`shadow` 和 agent 工具需要插件已挂载。
+你挂载的每个插件都在悄悄向每次 LLM 请求收费:prompt sections、工具 schema、token。dsh-xray 以 **与 Chat / Trajectory 并列的 X 光标签页** 长在你运行中的 harness 里,把这份账单逐项摊开——按插件、按条目,直到具体到每一个字:
 
-`dsh --dump-config` 只给你原始组合树,插件面板只给你平铺列表。它们都不回答:这个插件*为什么*在这、停用它会*连带瘫掉什么*、它在*悄悄消耗什么*。dsh-xray 回答这些。
+![X 光标签页:每个插件的每请求上下文税,已归因并排序](./assets/tab-cost.webp)
 
-## CLI
+展开插件看它注册了什么;点击任何条目,读它注入每次请求的原文:
+
+<table>
+<tr>
+<td width="50%">
+
+![插件展开为其注册的条目](./assets/tab-expand.webp)
+
+</td>
+<td width="50%">
+
+![~184 token 背后的原文,附字符/token 标尺](./assets/tab-entry.webp)
+
+</td>
+</tr>
+</table>
+
+三次点击:插件总账 → 条目清单 → 实际文字。数字不再是你被迫相信的估算,而是你亲手核对过的事实。
+
+---
+
+## 问题
+
+`dsh --dump-config` 只给你原始组合树,插件面板只给你平铺列表。它们都不回答:这个插件**为什么**在这、停用它会**连带瘫掉什么**、它在每次请求里**悄悄消耗什么**。
+
+**dsh-xray 回答这些。** 当答案是"这个插件对每次请求收税、却没有任何东西依赖它"——`deps` 视图确认可以安全停用,一行 patch 移除它,`attribute` 验证生效。
+
+---
+
+<p align="center">
+  <img src="./assets/section-context-tax.svg" width="100%" alt="上下文税">
+</p>
+
+cost 视图回答一个别的工具都不问的问题:**这段上下文是谁放进来的、花掉我多少?**
+
+- **来源归因** —— 每个 prompt section 和工具 schema 都关联到注册它的插件,实时从 registry 重建(无法唯一归因的条目诚实标注 `unattributed`,绝不猜测)。
+- **按插件汇总** —— 每个插件的每请求上下文税:sections + schemas + tokens + 占比,排序呈现。
+- **条目原文查看** —— `/xray/api/entry` 返回任意条目的实时文本,附字符/token 标尺。按请求现算,绝不落盘。
+- **界面自解释** —— 每个视图开头一句"你在看什么";术语带白话提示;整个标签页通过宿主 locale 服务双语呈现(English / 中文)。
+
+同一份数据流经三个界面:**X 光标签页**(原生 GUI)、独立 **`/xray` 页面**(连它所诊断的 client-module 加载链路挂了都能用)、以及 **CLI**。
+
+---
+
+<p align="center">
+  <img src="./assets/section-cli.svg" width="100%" alt="CLI 命令">
+</p>
 
 ```sh
 npx dsh-xray attribute   # 每一行由哪层引入、之后被谁 patch 过
@@ -38,126 +84,139 @@ npx dsh-xray shadow      # 被多个插件同时提供的服务
 npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ```
 
-所有命令支持 `--profile <name>`(默认 `web`)和 `--json`。`diff` 在两棵树不一致时退出码 `1`;`health` 在有插件不健康时退出码 `1`。`attribute`、`conflicts`、`snapshot` 是纯静态的:dsh 起不来时照样能跑。`deps` 和 `health` 读取已挂载插件维护在 `$DSH_HOME/xray/runtime.json` 的运行时快照。
+![dsh-xray 演示](./docs/demo.svg)
 
-## 长什么样
+`attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;`diff` 与 `health` 在漂移/不健康时退出码 `1`,可直接进 CI。
 
-启动树的每一行,归因到引入它的层——以及之后谁 patch 过它:
+---
 
-```console
-$ npx dsh-xray attribute
-# 130 rows in profile "web"
+<p align="center">
+  <img src="./assets/section-features.svg" width="100%" alt="能力">
+</p>
 
-timer                        @deepseek-ai/dsh-base
-hmr                          @deepseek-ai/dsh-base    ← patched by @deepseek-ai/dsh-web-app [disabled]
-llm                          @deepseek-ai/dsh-base
-session-query-sqlite         @deepseek-ai/dsh-base    ← patched by @deepseek-ai/dsh-web-app
-...
-```
+<table>
+<tr>
+<td width="50%">
 
-停用一个 provider 会连带瘫掉什么——从真实服务存储算出来,不是猜的:
+### 🔍 层归因
+每个活跃插件来自哪一层:内核 bundle / profile 依赖 / `cordis.patch.yml` insert / repository 源。
 
-```console
-$ npx dsh-xray deps
-# disable-cascade (transitive consumers of each provider):
-  Loader → 5 plugin(s): AgentPresets, ClientModuleRegistry, Hmr, Include, PluginInventoryGateway
-  TimerService → 1 plugin(s): Hmr
-  SessionProjectionRegistry → 1 plugin(s): SessionProjectionCache
-```
+### 📊 声明 vs 实际 diff
+装了但没生效、卸了但残留 patch 行——包括指向不存在 id 的 patch 行(dsh 会静默跳过)。
 
-哪些字段有多个写者、谁静默赢了:
+### ⚡ 冲突检测
+多个插件 patch 同一配置行时,谁静默赢了。
 
-```console
-$ npx dsh-xray conflicts
-session-query-sqlite
-  .config: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
-tool-bash
-  .disabled: @deepseek-ai/dsh-base → @deepseek-ai/dsh-web-app  (winner: @deepseek-ai/dsh-web-app)
-```
+### 📸 组合快照
+把当前生效组合导出为 lockfile,异地复现、事后对比。
 
-每次请求实际携带什么——assembly 时观测到的 prompt sections,与工具 schema 合并计价:
+</td>
+<td width="50%">
 
-```console
-$ npx dsh-xray cost
-~1625 tokens: 1 tool schema(s) ~121 + 19 prompt section(s) ~1504
+### 🌐 服务依赖图
+每个服务谁提供、谁消费——以及**停用级联**:停用 X 会连带瘫掉哪些依赖方。
 
-# prompt sections (observed at last assembly):
-app:web-surface                  ~248     15.3%   ████████
-tool:goal                        ~184     11.3%   ██████
-tool:ralph                       ~109     6.7%    ███
-harness:source                   ~94      5.8%    ███
-...
-```
+### 💊 运行时健康
+每个插件的 fiber 生命周期状态、启动失败、等待中的注入、状态迁移史。
 
-patch 行指向不存在的 id 时(dsh 静默跳过),`diff` 能抓到:
+### 👥 服务遮蔽
+同名注册中后来者静默胜出——通常是有意覆盖,偶尔是冲突。
 
-```console
-$ npx dsh-xray diff
-orphan overrides (silently skipped) (1)
-  no-such-row in ~/.dsh/profiles/web/cordis.patch.yml
-```
+### 🛡️ 能力审计
+对 out-of-tree 插件的启发式静态扫描:网络外发、shell、文件系统、环境变量、eval。
 
-## Agent 工具
+</td>
+</tr>
+</table>
 
-挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow`),agent 可以自答"我有哪些能力 / 哪个插件提供 X / 为什么 Y 不可用"。
+---
 
-## Web 面板
+<p align="center">
+  <img src="./assets/section-agent.svg" width="100%" alt="Agent 工具">
+</p>
 
-在 `dsh web` 中挂载后,插件在 **`/xray`** 提供零依赖面板——summary、health、deps(含停用级联表)、cost、shadow 五个视图,数据实时来自运行中的组合树;`/xray/api/*` 提供同源 JSON。
+挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow`),agent 可以自答:
 
-包同时携带 client 半(`dsh.client` 声明 + `exports["./client"]`):宿主自动发现并在每个会话中挂载 **与 Chat / Trajectory 并列的 X-ray 标签页**,用宿主设计变量原生渲染同样五个视图。独立的 `/xray` 页面保留为降级通道——它只依赖 web 服务器,不依赖它所诊断的 client-module 加载链路。
+> *"我有哪些能力?" / "哪个插件提供 X?" / "为什么 Y 不可用?"*
 
-![/xray 面板:deps 视图与停用级联表](./assets/panel-deps.webp)
+——关于它自己。
 
-## 安全立场
+---
 
-dsh-xray 只读不执行。patch 文件里的 loader `!!js` 表达式解析为不透明标记、绝不求值;CLI 从不执行插件代码(`audit` 是对源码文本的模式扫描);挂载的插件只写 `$DSH_HOME/xray/` 目录。详见 [SECURITY.md](./SECURITY.md)。
+<p align="center">
+  <img src="./assets/section-safety.svg" width="100%" alt="安全立场">
+</p>
 
-## 能力
+**dsh-xray 只读,不执行。**
 
-对运行中组合树的诊断成像——与 [dsh-doctor](https://www.npmjs.com/package/dsh-doctor)(救援与恢复)互补。
+- patch 文件里的 loader `!!js` 表达式解析为不透明标记,**绝不求值**
+- CLI **从不执行**插件代码(`audit` 是对源码文本的模式扫描)
+- 挂载的插件只写 `$DSH_HOME/xray/` 目录——条目原文实时返回,**绝不落盘**
+- entry 端点只返回组合层文本,**绝不返回会话消息**
+- 详见 [SECURITY.md](./SECURITY.md)
 
-已交付:
+---
 
-- **来源归因** — 每个活跃插件来自哪一层:内核 bundle / profile 依赖 / `cordis.patch.yml` insert / repository 源
-- **声明 vs 实际 diff** — 装了但没生效、卸了但残留 patch 行
-- **冲突检测** — 多个插件 patch 同一配置行时,谁静默赢了
-- **组合快照** — 把当前生效组合导出为 lockfile;`--against` 对比漂移
-- **服务依赖图** — 每个服务谁提供、谁消费;停用 X 会级联影响什么(`deps`)
-- **运行时健康** — 每个插件的 fiber 生命周期状态、启动失败、状态迁移史(`health`)
-- **Agent 自省** — `xray_composition` 工具让 agent 检视自己的能力集
-- **能力审计** — 对 out-of-tree 插件的启发式静态扫描:网络外发、shell、文件系统、环境变量、动态求值(`audit`)
-- **服务重名检测** — 被多个插件同时提供的服务,及每插件工具/命令注册数(`shadow`)
-- **上下文成本** — prompt sections(观测自 system-prompt/assemble)+ 工具 schema 的估算 token 占用(`cost`)
-- **Web 面板** — `/xray` 五视图,零依赖零构建
+<p align="center">
+  <img src="./assets/section-install.svg" width="100%" alt="安装">
+</p>
 
-## 安装
+两种用法,彼此独立:
 
-两条使用路径,互相独立:
-
-**1. 只用静态 CLI**(不装进 dsh;dsh 起不来时也能用):
+**1. 只用静态 CLI**(不装进 dsh;dsh 起不来时照样能用):
 
 ```sh
 npx dsh-xray attribute        # 需要 Node >= 22
 ```
 
-**2. 挂载插件**(解锁运行时命令、`/xray` 面板和 agent 工具):
+**2. 挂载插件**(解锁运行时命令、X 光标签页、`/xray` 面板和 agent 工具):
 
 ```sh
 dsh plugin --profile web add dsh-xray
-# bundle 插件重启后生效——重启 dsh web
+# bundle 插件下次启动生效——重启 dsh web
 ```
 
-验证装好了:
+验证生效:
 
 ```sh
-dsh --profile web --dump-config | grep dsh-xray   # 组合树里有这一行
-npx dsh-xray health                               # 能读到运行时快照
-# 然后打开 http://localhost:3080/xray 看实时面板
+dsh --profile web --dump-config | grep dsh-xray   # 组合树中出现该行
+npx dsh-xray health                               # 读取运行时快照
+# 然后打开任意会话点 X 光标签页,
+# 或访问 http://localhost:3080/xray 看独立面板
 ```
 
 卸载:`dsh plugin --profile web remove dsh-xray`。
 
-## 许可证
+| 命令 | 行为 |
+| --- | --- |
+| `diff` | 两棵树不一致时退出码 `1` |
+| `health` | 有插件不健康时退出码 `1` |
+| `attribute`、`conflicts`、`snapshot` | 纯静态——dsh 起不来时照样能跑 |
+| `deps`、`health` | 读取 `$DSH_HOME/xray/runtime.json` 运行时快照 |
 
-MIT
+---
+
+<p align="center">
+  <img src="./assets/section-capabilities.svg" width="100%" alt="能力总表">
+</p>
+
+对运行中组合树的诊断成像——与 [dsh-doctor](https://www.npmjs.com/package/dsh-doctor)(救援与恢复)互补。
+
+| 能力 | 类别 |
+| --- | --- |
+| 上下文税归因 & 条目原文查看 | 💰 优化 |
+| 层归因 | 🔍 检视 |
+| 声明 vs 实际 diff | 🔍 检视 |
+| 冲突检测 | 🔍 检视 |
+| 组合快照 | 📦 导出 |
+| 服务依赖图 | 🌐 运行时 |
+| 运行时健康 | 🌐 运行时 |
+| 服务遮蔽 | 🌐 运行时 |
+| Agent 自省 | 🤖 AI |
+| 能力审计 | 🛡️ 安全 |
+
+---
+
+## 许可
+
+[MIT](./LICENSE)

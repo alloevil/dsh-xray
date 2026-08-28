@@ -19,17 +19,53 @@
   <a href="./README.zh.md">🇨🇳 中文文档</a>
 </p>
 
-![dsh-xray demo](./docs/demo.svg)
+---
+
+Every plugin you mount quietly bills every LLM request: prompt sections, tool schemas, tokens. dsh-xray sits inside your running harness as an **X-Ray tab beside Chat and Trajectory** and itemizes that bill — per plugin, per entry, down to the exact text:
+
+![The X-Ray tab: every plugin's per-request context tax, attributed and ranked](./assets/tab-cost.webp)
+
+Unfold a plugin to see what it registered; click any entry to read the exact text it puts into every request:
+
+<table>
+<tr>
+<td width="50%">
+
+![A plugin unfolds into its registered entries](./assets/tab-expand.webp)
+
+</td>
+<td width="50%">
+
+![The raw text behind ~184 tokens, with a chars/tokens ruler](./assets/tab-entry.webp)
+
+</td>
+</tr>
+</table>
+
+Three clicks: plugin rollup → entry list → the actual words. The number stops being an estimate you trust and becomes a fact you checked.
 
 ---
 
 ## The Problem
 
-`dsh --dump-config` shows you the composed tree. The plugin panel shows you a flat list. Neither tells you **why** a plugin is there, **what breaks** if you disable it, or **what it silently costs you**.
+`dsh --dump-config` shows you the composed tree. The plugin panel shows you a flat list. Neither tells you **why** a plugin is there, **what breaks** if you disable it, or **what it silently costs you** on every single request.
 
-**dsh-xray does.**
+**dsh-xray does.** And when the answer is "this plugin taxes every request and nothing depends on it" — the `deps` view confirms the disable is safe, one patch line removes it, and `attribute` verifies it took.
 
-> Static commands work even when dsh cannot boot; `deps`/`health`/`cost`/`shadow` and the agent tool need the plugin mounted.
+---
+
+<p align="center">
+  <img src="./assets/section-context-tax.svg" width="100%" alt="Context Tax">
+</p>
+
+The cost view answers the question no other tool asks: **who put this in my context, and what does it cost?**
+
+- **Attribution** — every prompt section and tool schema is joined to the plugin that registered it, reconstructed live from the registries (ambiguous entries stay `unattributed`, never guessed).
+- **By-plugin rollup** — each plugin's per-request context tax: sections + schemas + tokens + share, ranked.
+- **Entry inspection** — `/xray/api/entry` returns any entry's live text with a chars/tokens ruler. Computed per request, never persisted.
+- **Explained UI** — every view opens with a one-line "what am I looking at"; terms carry plain-language tooltips; the whole tab is localized (English / 中文) through the host locale service.
+
+The same data flows through three surfaces: the **X-Ray tab** (native GUI), the standalone **`/xray` page** (works even when the client-module pipeline it diagnoses is broken), and the **CLI**.
 
 ---
 
@@ -49,6 +85,12 @@ npx dsh-xray shadow      # services provided by multiple plugins
 npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touchpoints
 ```
 
+![dsh-xray demo](./docs/demo.svg)
+
+`attribute`, `conflicts`, and `snapshot` are fully static — they work even when dsh cannot boot. All commands take `--profile <name>` (default `web`) and `--json`; `diff` and `health` exit `1` on drift/unhealth, so they slot into CI.
+
+---
+
 <p align="center">
   <img src="./assets/section-features.svg" width="100%" alt="Features">
 </p>
@@ -61,55 +103,34 @@ npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touc
 Which layer introduced each active plugin: kernel bundle, profile dependency, `cordis.patch.yml` insert, or repository source.
 
 ### 📊 Declared vs. Actual Diff
-Installed-but-inactive, uninstalled-but-lingering patch rows — all surfaced.
+Installed-but-inactive, uninstalled-but-lingering patch rows — including patch rows targeting ids that don't exist (dsh skips them silently).
 
 ### ⚡ Conflict Detection
 Plugins patching the same config row, and which one silently wins.
 
 ### 📸 Composition Snapshot
-Export the effective composition as a lockfile; reproduce it elsewhere.
+Export the effective composition as a lockfile; reproduce it elsewhere, diff against it later.
 
 </td>
 <td width="50%">
 
 ### 🌐 Service Dependency Graph
-Who provides and consumes each service; what cascades if you disable X.
+Who provides and consumes each service — and the **disable-cascade**: exactly which dependents go down if you disable X.
 
 ### 💊 Runtime Health
-Per-plugin fiber lifecycle state, startup failures, transition history.
+Per-plugin fiber lifecycle state, startup failures, pending injects, transition history.
 
-### 🤖 Agent Self-Introspection
-The `xray_composition` tool lets agents inspect their own capability set.
-
-### 🖥️ Web Panel
-Mounted in `dsh web`, the plugin serves a zero-dependency panel at **`/xray`** — summary, health, deps (with the disable-cascade table), cost, and shadow views, live from the running composition. JSON endpoints under `/xray/api/*` serve the same data.
-
-The package also ships a client half (`dsh.client` declaration + `exports["./client"]`): the host discovers it automatically and mounts an **X-ray tab beside Chat / Trajectory** in every session, rendering the same five views natively in the GUI with the host's design tokens. The standalone `/xray` page stays available as the degradation path — it only needs the web server, not the client-module pipeline it helps diagnose.
-
-![The /xray panel: deps view with the disable-cascade table](./assets/panel-deps.webp)
-
-What every request actually carries — prompt sections observed at assembly, blended with tool schemas:
-
-```console
-$ npx dsh-xray cost
-~1625 tokens: 1 tool schema(s) ~121 + 19 prompt section(s) ~1504
-
-# prompt sections (observed at last assembly):
-app:web-surface                  ~248     15.3%   ████████
-tool:goal                        ~184     11.3%   ██████
-tool:ralph                       ~109     6.7%    ███
-harness:source                   ~94      5.8%    ███
-...
-```
-
-And when a patch row targets an id that doesn't exist (dsh skips it silently), `diff` catches it:
+### 👥 Service Shadowing
+Same-name registrations where a later writer silently wins — usually an intended override, occasionally a conflict.
 
 ### 🛡️ Capability Audit
-Heuristic static scan: network egress, shell, filesystem, env, eval.
+Heuristic static scan of out-of-tree plugins: network egress, shell, filesystem, env, eval.
 
 </td>
 </tr>
 </table>
+
+---
 
 <p align="center">
   <img src="./assets/section-agent.svg" width="100%" alt="Agent Tool">
@@ -131,7 +152,8 @@ Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summa
 
 - Loader `!!js` expressions in patch files are parsed as opaque markers and **never evaluated**
 - The CLI **never executes** plugin code (`audit` is a pattern scan over source text)
-- The mounted plugin writes only under `$DSH_HOME/xray/`
+- The mounted plugin writes only under `$DSH_HOME/xray/` — entry text is served live, **never persisted**
+- The entry endpoint returns composition-layer text only, **never session messages**
 - See [SECURITY.md](./SECURITY.md)
 
 ---
@@ -148,7 +170,7 @@ Two ways to use it — they're independent:
 npx dsh-xray attribute        # requires Node >= 22
 ```
 
-**2. Mount the plugin** (adds the runtime commands, the `/xray` panel, and the agent tool):
+**2. Mount the plugin** (adds the runtime commands, the X-Ray tab, the `/xray` panel, and the agent tool):
 
 ```sh
 dsh plugin --profile web add dsh-xray
@@ -160,12 +182,11 @@ Verify it took:
 ```sh
 dsh --profile web --dump-config | grep dsh-xray   # row present in the composed tree
 npx dsh-xray health                               # reads the runtime snapshot
-# then open http://localhost:3080/xray for the live panel
+# then open any session and click the X-Ray tab,
+# or http://localhost:3080/xray for the standalone panel
 ```
 
 Uninstall: `dsh plugin --profile web remove dsh-xray`.
-
-All commands take `--profile <name>` (default `web`) and `--json`.
 
 | Command | Behavior |
 | --- | --- |
@@ -184,16 +205,16 @@ Diagnostic imaging for a running composition — complementary to [dsh-doctor](h
 
 | Feature | Category |
 | --- | --- |
+| Context-tax attribution & entry inspection | 💰 Optimization |
 | Layer attribution | 🔍 Inspection |
 | Declared vs. actual diff | 🔍 Inspection |
 | Conflict detection | 🔍 Inspection |
 | Composition snapshot | 📦 Export |
 | Service dependency graph | 🌐 Runtime |
 | Runtime health | 🌐 Runtime |
+| Service shadowing | 🌐 Runtime |
 | Agent self-introspection | 🤖 AI |
 | Capability audit | 🛡️ Security |
-| Service shadowing | 🌐 Runtime |
-| Context cost | 💰 Optimization |
 
 ---
 
