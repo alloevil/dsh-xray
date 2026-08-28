@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.1 — 2026-08-28
+
+- Docs & discoverability: README (en/zh) documents the skill cost view;
+  npm keywords extended (context-cost, token-attribution,
+  llm-observability, skill-catalog, …); GitHub repository description and
+  topics set. No code changes.
+
 ## 0.9.0 — 2026-08-28
 
 **Skill cost view** — a sixth view answering "what does each skill cost me":
