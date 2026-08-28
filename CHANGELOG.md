@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.2 — 2026-08-28
+
+- npm was rendering the CHINESE readme as the package page (its readme
+  picker preferred README.zh.md): the zh readme moves to docs/, leaving
+  README.md the only root candidate. package.json description now names
+  the searchable surface (diagnostics, context-tax attribution,
+  per-request token ledger, skill pricing). No code changes.
+
 ## 0.10.1 — 2026-08-28
 
 - Requests view: the tool-results cell unfolds into per-tool rows, each

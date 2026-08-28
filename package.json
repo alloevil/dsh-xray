@@ -1,7 +1,7 @@
 {
   "name": "dsh-xray",
-  "version": "0.10.1",
-  "description": "X-ray for your DeepSeek Harness — see what's actually loaded, why, and what it costs you.",
+  "version": "0.10.2",
+  "description": "X-ray for your DeepSeek Harness — diagnostics for what's actually loaded, why, and what it costs: per-plugin context-tax attribution, per-request token ledger, skill catalog pricing, dependency cascades.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alloevil/dsh-xray.git"
@@ -24,7 +24,6 @@
     "bin",
     "cordis.patch.yml",
     "README.md",
-    "README.zh.md",
     "docs",
     "assets"
   ],

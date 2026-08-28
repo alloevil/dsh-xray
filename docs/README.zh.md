@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/hero.svg" width="100%" alt="dsh-xray — 给你的 DeepSeek Harness 拍 X 光">
+  <img src="../assets/hero.svg" width="100%" alt="dsh-xray — 给你的 DeepSeek Harness 拍 X 光">
 </p>
 
 <p align="center">
@@ -17,14 +17,14 @@
 </p>
 
 <p align="center">
-  <a href="./README.md">English</a>
+  <a href="../README.md">English</a>
 </p>
 
 ---
 
 你挂载的每个插件都在悄悄向每次 LLM 请求收费:prompt sections、工具 schema、token。dsh-xray 以 **与 Chat / Trajectory 并列的 X 光标签页** 长在你运行中的 harness 里,把这份账单逐项摊开——按插件、按条目,直到具体到每一个字:
 
-![X 光标签页:每个插件的每请求上下文税,已归因并排序](./assets/tab-cost.webp)
+![X 光标签页:每个插件的每请求上下文税,已归因并排序](../assets/tab-cost.webp)
 
 展开插件看它注册了什么;点击任何条目,读它注入每次请求的原文:
 
@@ -32,12 +32,12 @@
 <tr>
 <td width="50%">
 
-![插件展开为其注册的条目](./assets/tab-expand.webp)
+![插件展开为其注册的条目](../assets/tab-expand.webp)
 
 </td>
 <td width="50%">
 
-![~184 token 背后的原文,附字符/token 标尺](./assets/tab-entry.webp)
+![~184 token 背后的原文,附字符/token 标尺](../assets/tab-entry.webp)
 
 </td>
 </tr>
@@ -56,7 +56,7 @@
 ---
 
 <p align="center">
-  <img src="./assets/section-context-tax.svg" width="100%" alt="上下文税">
+  <img src="../assets/section-context-tax.svg" width="100%" alt="上下文税">
 </p>
 
 cost 视图回答一个别的工具都不问的问题:**这段上下文是谁放进来的、花掉我多少?**
@@ -73,7 +73,7 @@ cost 视图回答一个别的工具都不问的问题:**这段上下文是谁放
 ---
 
 <p align="center">
-  <img src="./assets/section-cli.svg" width="100%" alt="CLI 命令">
+  <img src="../assets/section-cli.svg" width="100%" alt="CLI 命令">
 </p>
 
 ```sh
@@ -88,14 +88,14 @@ npx dsh-xray shadow      # 被多个插件同时提供的服务
 npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ```
 
-![dsh-xray 演示](./docs/demo.svg)
+![dsh-xray 演示](./demo.svg)
 
 `attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;`diff` 与 `health` 在漂移/不健康时退出码 `1`,可直接进 CI。
 
 ---
 
 <p align="center">
-  <img src="./assets/section-features.svg" width="100%" alt="能力">
+  <img src="../assets/section-features.svg" width="100%" alt="能力">
 </p>
 
 <table>
@@ -136,7 +136,7 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ---
 
 <p align="center">
-  <img src="./assets/section-agent.svg" width="100%" alt="Agent 工具">
+  <img src="../assets/section-agent.svg" width="100%" alt="Agent 工具">
 </p>
 
 挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow`),agent 可以自答:
@@ -148,7 +148,7 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ---
 
 <p align="center">
-  <img src="./assets/section-safety.svg" width="100%" alt="安全立场">
+  <img src="../assets/section-safety.svg" width="100%" alt="安全立场">
 </p>
 
 **dsh-xray 只读,不执行。**
@@ -157,12 +157,12 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 - CLI **从不执行**插件代码(`audit` 是对源码文本的模式扫描)
 - 挂载的插件只写 `$DSH_HOME/xray/` 目录——条目原文实时返回,**绝不落盘**
 - entry 端点只返回组合层文本,**绝不返回会话消息**
-- 详见 [SECURITY.md](./SECURITY.md)
+- 详见 [SECURITY.md](../SECURITY.md)
 
 ---
 
 <p align="center">
-  <img src="./assets/section-install.svg" width="100%" alt="安装">
+  <img src="../assets/section-install.svg" width="100%" alt="安装">
 </p>
 
 两种用法,彼此独立:
@@ -201,7 +201,7 @@ npx dsh-xray health                               # 读取运行时快照
 ---
 
 <p align="center">
-  <img src="./assets/section-capabilities.svg" width="100%" alt="能力总表">
+  <img src="../assets/section-capabilities.svg" width="100%" alt="能力总表">
 </p>
 
 对运行中组合树的诊断成像——与 [dsh-doctor](https://www.npmjs.com/package/dsh-doctor)(救援与恢复)互补。
@@ -225,4 +225,4 @@ npx dsh-xray health                               # 读取运行时快照
 
 ## 许可
 
-[MIT](./LICENSE)
+[MIT](../LICENSE)
