@@ -100,7 +100,7 @@ skill-explorer(@linxin666/dsh-client-ui-skill-explorer,负责浏览/
 - 明确不做:启用/禁用/增删(skill-explorer 的地盘);skill 正文
   落盘;skill 调用历史统计(归二期逐请求账单)。
 
-## 二期:逐请求账单(一期验收后再开工)
+## 二期:逐请求账单 ✅ 已完成(0.10.0,2026-08-28)
 
 ### 目标
 
@@ -122,6 +122,15 @@ system / tool schemas / history / tool-results,ring buffer
 - 不渲染请求内容(内容是 Trajectory 的地盘,xray 只做计量与归因);
 - 完整请求快照(方案 C)永不默认开启。
 
-## 发布
+## 发布记录
 
-一期完成 → 0.8.0(feat)。二期完成 → 0.9.0。均走 tag 触发 CI 发布。
+- 一期(归因)→ 0.8.0;附加(解释/locale/entry/skill 成本)→ 0.8.1–0.9.1;
+- 二期(逐请求账单)→ 0.10.0。均走 tag 触发 CI 发布。
+
+## 三期候选(未拍板,仅登记)
+
+- **Trajectory 联动**:requests/cost 行 → Trajectory 对应节点跳转
+  (计量层发现问题,叙事层看细节)。调研中。
+- CLI `requests` 命令(面板视图的 CLI 孪生,现缺)。
+- 归因视图与 deps 联动提示(一期展示节里承诺过"点开显示
+  disable-cascade 摘要",尚未实现,属欠账)。

@@ -66,6 +66,7 @@ The cost view answers the question no other tool asks: **who put this in my cont
 - **By-plugin rollup** — each plugin's per-request context tax: sections + schemas + tokens + share, ranked.
 - **Entry inspection** — `/xray/api/entry` returns any entry's live text with a chars/tokens ruler. Computed per request, never persisted.
 - **Skill cost** — a dedicated view prices every skill twice: its catalog line (resident on every request once any model-invocable skill exists) and its body (billed per load). Pricing only — toggling belongs to the ecosystem's skill managers.
+- **Per-request ledger** — one classified bill per LLM call: system / tool schemas / history / tool results (aggregated per tool), a **Δprev** growth column, and prefix-stability markers (⚡ system+tools byte-identical to the previous request — KV-cache-friendly; ✂ prefix broken). Compaction and title calls are tagged apart from chat. Only counts, names, and hashes are kept — never message text.
 - **Explained UI** — every view opens with a one-line "what am I looking at"; terms carry plain-language tooltips; the whole tab is localized (English / 中文) through the host locale service.
 
 The same data flows through three surfaces: the **X-Ray tab** (native GUI), the standalone **`/xray` page** (works even when the client-module pipeline it diagnoses is broken), and the **CLI**.
@@ -210,6 +211,7 @@ Diagnostic imaging for a running composition — complementary to [dsh-doctor](h
 | --- | --- |
 | Context-tax attribution & entry inspection | 💰 Optimization |
 | Skill cost (catalog line + body pricing) | 💰 Optimization |
+| Per-request ledger (Δprev, prefix stability) | 💰 Optimization |
 | Layer attribution | 🔍 Inspection |
 | Declared vs. actual diff | 🔍 Inspection |
 | Conflict detection | 🔍 Inspection |

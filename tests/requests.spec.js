@@ -134,3 +134,28 @@ test('requestLedger degrades cleanly without observations', () => {
   assert.equal(requestLedger({ capturedAt: 'x' }).available, false);
   assert.equal(requestLedger({ capturedAt: 'x', requestLedger: {} }).available, false);
 });
+
+test('classify records the largest result call id per tool', () => {
+  const options = {
+    system: 's',
+    tools: [],
+    messages: [
+      msg('assistant', [
+        { type: 'tool-call', id: 'small', name: 'bash', arguments: '{}' },
+        { type: 'tool-call', id: 'big', name: 'bash', arguments: '{}' },
+      ]),
+      msg('user', [{ type: 'tool-result', toolCallId: 'small', content: [text('x'.repeat(40))] }], {
+        kind: 'tool',
+        callId: 'small',
+      }),
+      msg('user', [{ type: 'tool-result', toolCallId: 'big', content: [text('y'.repeat(4000))] }], {
+        kind: 'tool',
+        callId: 'big',
+      }),
+    ],
+  };
+  const entry = classify(options);
+  assert.equal(entry.toolResultRows[0].name, 'bash');
+  assert.equal(entry.toolResultRows[0].count, 2);
+  assert.equal(entry.toolResultRows[0].topCallId, 'big'); // largest wins
+});

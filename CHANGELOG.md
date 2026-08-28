@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.1 — 2026-08-28
+
+- Requests view: the tool-results cell unfolds into per-tool rows, each
+  carrying the opaque call id of that tool's largest result with a
+  copy button — the manual bridge to the Trajectory tab until the host
+  exposes an inspect write-side for third-party views. Ids only; no
+  result text is retained.
+- READMEs (en/zh) document the per-request ledger; intent.md archives
+  phase two and registers phase-three candidates.
+
 ## 0.10.0 — 2026-08-28
 
 **Per-request ledger** — the time axis the static cost view lacks. A
