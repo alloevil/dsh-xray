@@ -1,0 +1,29 @@
+{
+  "schema": "dsh-xray/runtime@1",
+  "capturedAt": "2026-01-01T00:00:00.000Z",
+  "registrySize": 3,
+  "plugins": [
+    {
+      "name": "PluginAlpha",
+      "inject": [],
+      "provide": [],
+      "fibers": [{ "uid": 1, "state": "ACTIVE", "error": null, "effects": [] }]
+    },
+    {
+      "name": "PluginGamma",
+      "inject": [],
+      "provide": [],
+      "fibers": [{ "uid": 2, "state": "ACTIVE", "error": null, "effects": [] }]
+    },
+    {
+      "name": "ExtraHelper",
+      "inject": [],
+      "provide": [],
+      "fibers": [{ "uid": 3, "state": "ACTIVE", "error": null, "effects": [] }]
+    }
+  ],
+  "services": [],
+  "tools": [],
+  "transitions": {},
+  "promptAssembly": null
+}

@@ -1,0 +1,137 @@
+{
+  "attribute": {
+    "schema": "dsh-xray/attribute@1",
+    "rows": [
+      {
+        "id": "alpha",
+        "name": "plugin-alpha",
+        "disabled": false,
+        "origin": {
+          "layer": "profile-patch",
+          "kind": "profile-patch",
+          "file": "<HOME>/profiles/test/cordis.patch.yml",
+          "line": 1
+        },
+        "overrides": []
+      },
+      {
+        "id": "beta",
+        "name": "plugin-beta",
+        "disabled": false,
+        "origin": {
+          "layer": "profile-patch",
+          "kind": "profile-patch",
+          "file": "<HOME>/profiles/test/cordis.patch.yml",
+          "line": 1
+        },
+        "overrides": []
+      },
+      {
+        "id": "gamma",
+        "name": "plugin-gamma",
+        "disabled": true,
+        "origin": {
+          "layer": "profile-patch",
+          "kind": "profile-patch",
+          "file": "<HOME>/profiles/test/cordis.patch.yml",
+          "line": 1
+        },
+        "overrides": [
+          {
+            "layer": "profile-patch",
+            "kind": "profile-patch",
+            "file": "<HOME>/profiles/test/cordis.patch.yml",
+            "line": 8,
+            "fields": [
+              "disabled"
+            ]
+          }
+        ]
+      }
+    ],
+    "orphans": [],
+    "warnings": []
+  },
+  "conflicts": {
+    "schema": "dsh-xray/conflicts@1",
+    "semantics": "per-field last-writer-wins, layers applied in load order",
+    "conflicts": []
+  },
+  "deps": {
+    "schema": "dsh-xray/deps@1",
+    "services": {},
+    "cascade": {},
+    "unsatisfied": []
+  },
+  "health": {
+    "schema": "dsh-xray/health@1",
+    "healthy": [
+      "PluginAlpha",
+      "PluginGamma",
+      "ExtraHelper"
+    ],
+    "waiting": [],
+    "unhealthy": [],
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "cost": {
+    "schema": "dsh-xray/cost@1",
+    "totalTokens": 0,
+    "toolTokens": 0,
+    "sectionTokens": 0,
+    "toolCount": 0,
+    "sectionCount": 0,
+    "tools": [],
+    "sections": [],
+    "owners": [],
+    "promptObservedAt": null,
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "shadow": {
+    "schema": "dsh-xray/shadow@1",
+    "services": [],
+    "registrars": []
+  },
+  "skills": {
+    "schema": "dsh-xray/skills@1",
+    "available": false,
+    "skills": [],
+    "totals": null,
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "requests": {
+    "schema": "dsh-xray/requests@1",
+    "available": false,
+    "sessions": [],
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "verify": {
+    "schema": "dsh-xray/verify@1",
+    "capturedAt": "2026-01-01T00:00:00.000Z",
+    "stale": null,
+    "matched": [
+      {
+        "id": "alpha",
+        "name": "plugin-alpha",
+        "runtime": "PluginAlpha"
+      }
+    ],
+    "declaredNotRunning": [
+      {
+        "id": "beta",
+        "name": "plugin-beta"
+      }
+    ],
+    "disabledButRunning": [
+      {
+        "id": "gamma",
+        "name": "plugin-gamma",
+        "runtime": "PluginGamma"
+      }
+    ],
+    "undeclaredRuntime": [
+      "ExtraHelper"
+    ],
+    "unsatisfied": []
+  }
+}

@@ -279,6 +279,52 @@ function cmdShadow(args) {
   panelHint(args);
 }
 
+function cmdVerify(args) {
+  const data = collectStatic(args.profile);
+  const snap = readRuntimeSnapshot();
+  const fs = require('node:fs');
+  let staticMtimeMs = null;
+  for (const l of data.layers) {
+    try {
+      staticMtimeMs = Math.max(staticMtimeMs ?? 0, fs.statSync(l.file).mtimeMs);
+    } catch {
+      /* unreadable layer file: leave staleness unknown for it */
+    }
+  }
+  const result = model.verify(data, snap, { staticMtimeMs });
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+
+  const declared = result.matched.length + result.declaredNotRunning.length;
+  console.log(`runtime snapshot captured ${result.capturedAt}`);
+  if (result.stale) {
+    console.log(
+      '! static layers changed after this snapshot — restart dsh or wait for the next refresh',
+    );
+  }
+  const mark = result.declaredNotRunning.length ? '⚠' : '✓';
+  console.log(
+    `${mark} declared enabled plugins observed at runtime: ${result.matched.length}/${declared}`,
+  );
+  for (const r of result.declaredNotRunning) console.log(`  missing: ${r.id} (${r.name})`);
+  if (result.disabledButRunning.length) {
+    console.log(`✗ disabled but running (${result.disabledButRunning.length}):`);
+    for (const r of result.disabledButRunning) {
+      console.log(`  ${r.id} (${r.name}) — runtime: ${r.runtime}`);
+    }
+  }
+  if (result.undeclaredRuntime.length) {
+    console.log(
+      `+ ${result.undeclaredRuntime.length} runtime-only plugin(s) (programmatic subplugins are normal): ${result.undeclaredRuntime.slice(0, 6).join(', ')}${result.undeclaredRuntime.length > 6 ? ', …' : ''}`,
+    );
+  }
+  if (result.unsatisfied.length) {
+    console.log(`! ${result.unsatisfied.length} unsatisfied inject(s):`);
+    for (const u of result.unsatisfied) console.log(`  ${u.plugin} wants ${u.service}`);
+  }
+  if (result.declaredNotRunning.length || result.disabledButRunning.length) process.exitCode = 1;
+  panelHint(args);
+}
+
 function cmdAudit(args) {
   const { collectAudit } = require('../lib/collect/audit.js');
   const data = collectStatic(args.profile);
@@ -309,6 +355,7 @@ const commands = {
   health: cmdHealth,
   cost: cmdCost,
   shadow: cmdShadow,
+  verify: cmdVerify,
   audit: cmdAudit,
 };
 
@@ -328,9 +375,10 @@ Commands:
   health      plugin lifecycle health from the live runtime snapshot
   cost        estimated context-token cost of each model-facing tool schema
   shadow      services provided by multiple plugins, and per-plugin registrations
+  verify      declared (static) rows reconciled against the runtime registry
   audit       static scan of out-of-tree plugins for sensitive touchpoints
 
-deps/health/cost/shadow need the plugin mounted: dsh plugin --profile web add dsh-xray`);
+deps/health/cost/shadow/verify need the plugin mounted: dsh plugin --profile web add dsh-xray`);
   process.exit(args._[0] ? 2 : 0);
 }
 try {

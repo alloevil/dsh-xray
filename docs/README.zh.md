@@ -85,12 +85,13 @@ npx dsh-xray deps [svc]  # 服务依赖图:提供者、消费者、传递性停�
 npx dsh-xray health      # 插件生命周期健康:失败 fiber、等待中的注入、状态迁移史
 npx dsh-xray cost        # 上下文成本:prompt sections + 工具 schema 的估算 token 占用
 npx dsh-xray shadow      # 被多个插件同时提供的服务
+npx dsh-xray verify      # 声明(静态)行 ↔ 运行时注册表对账,不一致退出码 1
 npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ```
 
 ![dsh-xray 演示](./demo.svg)
 
-`attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;所有 JSON 输出都带版本化的 `schema` 字段(`dsh-xray/<view>@1`),机器消费方据此识别结构变化而不必猜。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)均返回 `1`。
+`attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;所有 JSON 输出都带版本化的 `schema` 字段(`dsh-xray/<view>@1`),机器消费方据此识别结构变化而不必猜。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)、`verify`(声明与运行时不符)均返回 `1`。
 
 ---
 
@@ -174,6 +175,7 @@ $ npx dsh-xray deps
 | --- | --- | --- |
 | **静态** | `attribute`、`conflicts`、`snapshot` | 对磁盘上层栈的精确重放;dsh 起不来也能跑。观测不到运行时行为。 |
 | **静态 + 外呼** | `diff` | 重放层栈后,再起一个 `dsh --dump-config` 对比声明与实际。 |
+| **静态 + 运行时** | `verify` | 两侧对账:声明了却没挂载的行、禁用了还在跑的行、只存在于运行时的插件、快照过期。 |
 | **运行时** | `deps`、`health`、`cost`、`shadow`、标签页、`/xray` 面板、agent 工具 | 观测自运行中的组合树(`$DSH_HOME/xray/runtime.json`),只对当前会话有效。token 为估算值(约 4 字符/token),除非你打开条目原文自己数。 |
 | **启发式** | `audit` | 对源码文本的模式扫描;可能误报漏报。命中只表示"该模式出现在代码里",绝不等于"该插件是恶意的"。 |
 
@@ -215,6 +217,7 @@ npx dsh-xray health                               # 读取运行时快照
 | `health` | 有插件不健康时 `1` |
 | `snapshot --against <lock>` | 组合漂移时 `1` |
 | `shadow` | 服务被多方提供时 `1` |
+| `verify` | 声明与运行时不符时 `1` |
 
 ---
 
@@ -233,6 +236,7 @@ npx dsh-xray health                               # 读取运行时快照
 | 声明 vs 实际 diff | 🔍 检视 |
 | 冲突检测 | 🔍 检视 |
 | 组合快照 | 📦 导出 |
+| 静态 ↔ 运行时对账 | 🔍 检视 |
 | 服务依赖图 | 🌐 运行时 |
 | 运行时健康 | 🌐 运行时 |
 | 服务遮蔽 | 🌐 运行时 |

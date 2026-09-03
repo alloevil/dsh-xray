@@ -68,6 +68,8 @@ for (const name of fs.readdirSync(FIXTURES).sort()) {
       actual.shadow = model.shadowing(snap);
       actual.skills = model.skillCost(snap);
       actual.requests = model.requestLedger(snap);
+      // Both sides present: the fixture also pins static↔runtime reconciliation.
+      if (staticData) actual.verify = model.verify(staticData, snap);
     }
     check(dir, normalize(actual, home));
   });

@@ -1,0 +1,9 @@
+- insert:
+    - id: alpha
+      name: plugin-alpha
+    - id: beta
+      name: plugin-beta
+    - id: gamma
+      name: plugin-gamma
+- id: gamma
+  disabled: true

@@ -86,12 +86,13 @@ npx dsh-xray deps [svc]  # service dependency graph: providers, consumers, trans
 npx dsh-xray health      # plugin lifecycle health: failed fibers, pending injects, transitions
 npx dsh-xray cost        # context cost: prompt sections + tool schemas, estimated tokens
 npx dsh-xray shadow      # services provided by multiple plugins
+npx dsh-xray verify      # declared (static) rows ↔ runtime registry, exits 1 on mismatch
 npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touchpoints
 ```
 
 ![dsh-xray demo](./docs/demo.svg)
 
-`attribute`, `conflicts`, and `snapshot` are fully static — they work even when dsh cannot boot. All commands take `--profile <name>` (default `web`) and `--json`; every JSON payload carries a versioned `schema` field (`dsh-xray/<view>@1`) so machine consumers detect shape changes instead of guessing. Exit codes slot into CI: `diff` (trees disagree), `health` (unhealthy plugin), `snapshot --against <lock>` (composition drifted) and `shadow` (multi-provider service) all exit `1`.
+`attribute`, `conflicts`, and `snapshot` are fully static — they work even when dsh cannot boot. All commands take `--profile <name>` (default `web`) and `--json`; every JSON payload carries a versioned `schema` field (`dsh-xray/<view>@1`) so machine consumers detect shape changes instead of guessing. Exit codes slot into CI: `diff` (trees disagree), `health` (unhealthy plugin), `snapshot --against <lock>` (composition drifted), `shadow` (multi-provider service) and `verify` (declared ↔ runtime mismatch) all exit `1`.
 
 ---
 
@@ -175,6 +176,7 @@ Every result names its trust boundary:
 | --- | --- | --- |
 | **Static** | `attribute`, `conflicts`, `snapshot` | Exact replay of the on-disk layer stack; works even when dsh cannot boot. Cannot observe runtime behavior. |
 | **Static + spawn** | `diff` | Replays the layers, then spawns `dsh --dump-config` to compare declared vs. actual. |
+| **Static + runtime** | `verify` | Joins both sides: declared rows that never mounted, disabled rows still running, runtime-only plugins, snapshot staleness. |
 | **Runtime** | `deps`, `health`, `cost`, `shadow`, tab, `/xray` panel, agent tool | Observed from the running composition (`$DSH_HOME/xray/runtime.json`); valid for the current session only. Token counts are estimates (~4 chars/token) unless you open the entry text and count. |
 | **Heuristic** | `audit` | Pattern scan over source text; false positives and negatives are expected. A flag means "this pattern appears", never "this plugin is malicious". |
 
@@ -216,6 +218,7 @@ Uninstall: `dsh plugin --profile web remove dsh-xray`.
 | `health` | `1` when any plugin is unhealthy |
 | `snapshot --against <lock>` | `1` when the composition drifted |
 | `shadow` | `1` when any service has multiple providers |
+| `verify` | `1` on any declared ↔ runtime mismatch |
 
 ---
 
@@ -234,6 +237,7 @@ Diagnostic imaging for a running composition — complementary to [dsh-doctor](h
 | Declared vs. actual diff | 🔍 Inspection |
 | Conflict detection | 🔍 Inspection |
 | Composition snapshot | 📦 Export |
+| Static ↔ runtime verification | 🔍 Inspection |
 | Service dependency graph | 🌐 Runtime |
 | Runtime health | 🌐 Runtime |
 | Service shadowing | 🌐 Runtime |
