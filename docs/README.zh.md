@@ -80,8 +80,8 @@ cost 视图回答一个别的工具都不问的问题:**这段上下文是谁放
 npx dsh-xray attribute   # 每一行由哪层引入、之后被谁 patch 过
 npx dsh-xray conflicts   # 哪些行的字段有多个写者、最终谁赢
 npx dsh-xray diff        # 声明(静态层)vs 实际(dump-config)组合树
-npx dsh-xray snapshot    # 当前生效组合的内容寻址 lockfile
-npx dsh-xray deps [svc]  # 服务依赖图:提供者、消费者、停用级联
+npx dsh-xray snapshot    # 内容寻址 lockfile;--against <lock> 对比漂移,漂移时退出码 1
+npx dsh-xray deps [svc]  # 服务依赖图:提供者、消费者、传递性停用级联
 npx dsh-xray health      # 插件生命周期健康:失败 fiber、等待中的注入、状态迁移史
 npx dsh-xray cost        # 上下文成本:prompt sections + 工具 schema 的估算 token 占用
 npx dsh-xray shadow      # 被多个插件同时提供的服务
@@ -90,7 +90,7 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 
 ![dsh-xray 演示](./demo.svg)
 
-`attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;`diff` 与 `health` 在漂移/不健康时退出码 `1`,可直接进 CI。
+`attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)均返回 `1`。
 
 ---
 
@@ -112,13 +112,20 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 多个插件 patch 同一配置行时,谁静默赢了。
 
 ### 📸 组合快照
-把当前生效组合导出为 lockfile,异地复现、事后对比。
+把当前生效组合导出为 lockfile;`snapshot --against <lock>` 报告漂移——bundle 版本 / patch 内容 / 包变化——并退出码 `1`。
 
 </td>
 <td width="50%">
 
 ### 🌐 服务依赖图
-每个服务谁提供、谁消费——以及**停用级联**:停用 X 会连带瘫掉哪些依赖方。
+每个服务谁提供、谁消费——以及**传递性**停用级联:不只是直接消费者,还包括它们再提供的服务的所有下游。
+
+```console
+$ npx dsh-xray deps
+# disable-cascade (transitive consumers of each provider):
+  Loader → 5 plugin(s): AgentPresets, ClientModuleRegistry, Hmr, …
+  TimerService → 1 plugin(s): Hmr
+```
 
 ### 💊 运行时健康
 每个插件的 fiber 生命周期状态、启动失败、等待中的注入、状态迁移史。
@@ -139,7 +146,7 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
   <img src="../assets/section-agent.svg" width="100%" alt="Agent 工具">
 </p>
 
-挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow`),agent 可以自答:
+挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow | skills | requests`),agent 可以自答:
 
 > *"我有哪些能力?" / "哪个插件提供 X?" / "为什么 Y 不可用?"*
 
@@ -158,6 +165,17 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 - 挂载的插件只写 `$DSH_HOME/xray/` 目录——条目原文实时返回,**绝不落盘**
 - entry 端点只返回组合层文本,**绝不返回会话消息**
 - 详见 [SECURITY.md](../SECURITY.md)
+
+## 分析模式
+
+每类结果都有明确的可信度边界:
+
+| 模式 | 命令 | 边界 |
+| --- | --- | --- |
+| **静态** | `attribute`、`conflicts`、`snapshot` | 对磁盘上层栈的精确重放;dsh 起不来也能跑。观测不到运行时行为。 |
+| **静态 + 外呼** | `diff` | 重放层栈后,再起一个 `dsh --dump-config` 对比声明与实际。 |
+| **运行时** | `deps`、`health`、`cost`、`shadow`、标签页、`/xray` 面板、agent 工具 | 观测自运行中的组合树(`$DSH_HOME/xray/runtime.json`),只对当前会话有效。token 为估算值(约 4 字符/token),除非你打开条目原文自己数。 |
+| **启发式** | `audit` | 对源码文本的模式扫描;可能误报漏报。命中只表示"该模式出现在代码里",绝不等于"该插件是恶意的"。 |
 
 ---
 
@@ -191,12 +209,12 @@ npx dsh-xray health                               # 读取运行时快照
 
 卸载:`dsh plugin --profile web remove dsh-xray`。
 
-| 命令 | 行为 |
+| 命令 | 退出码 |
 | --- | --- |
-| `diff` | 两棵树不一致时退出码 `1` |
-| `health` | 有插件不健康时退出码 `1` |
-| `attribute`、`conflicts`、`snapshot` | 纯静态——dsh 起不来时照样能跑 |
-| `deps`、`health` | 读取 `$DSH_HOME/xray/runtime.json` 运行时快照 |
+| `diff` | 两棵树不一致时 `1` |
+| `health` | 有插件不健康时 `1` |
+| `snapshot --against <lock>` | 组合漂移时 `1` |
+| `shadow` | 服务被多方提供时 `1` |
 
 ---
 

@@ -81,8 +81,8 @@ The same data flows through three surfaces: the **X-Ray tab** (native GUI), the 
 npx dsh-xray attribute   # which layer introduced each row, and who patched it since
 npx dsh-xray conflicts   # rows whose fields have multiple writers, and who wins
 npx dsh-xray diff        # declared (static layers) vs actual (dump-config) tree
-npx dsh-xray snapshot    # content-addressed lockfile of the effective composition
-npx dsh-xray deps [svc]  # service dependency graph: providers, consumers, disable-cascade
+npx dsh-xray snapshot    # content-addressed lockfile; --against <lock> reports drift, exits 1
+npx dsh-xray deps [svc]  # service dependency graph: providers, consumers, transitive disable-cascade
 npx dsh-xray health      # plugin lifecycle health: failed fibers, pending injects, transitions
 npx dsh-xray cost        # context cost: prompt sections + tool schemas, estimated tokens
 npx dsh-xray shadow      # services provided by multiple plugins
@@ -91,7 +91,7 @@ npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touc
 
 ![dsh-xray demo](./docs/demo.svg)
 
-`attribute`, `conflicts`, and `snapshot` are fully static — they work even when dsh cannot boot. All commands take `--profile <name>` (default `web`) and `--json`; `diff` and `health` exit `1` on drift/unhealth, so they slot into CI.
+`attribute`, `conflicts`, and `snapshot` are fully static — they work even when dsh cannot boot. All commands take `--profile <name>` (default `web`) and `--json`. Exit codes slot into CI: `diff` (trees disagree), `health` (unhealthy plugin), `snapshot --against <lock>` (composition drifted) and `shadow` (multi-provider service) all exit `1`.
 
 ---
 
@@ -113,13 +113,20 @@ Installed-but-inactive, uninstalled-but-lingering patch rows — including patch
 Plugins patching the same config row, and which one silently wins.
 
 ### 📸 Composition Snapshot
-Export the effective composition as a lockfile; reproduce it elsewhere, diff against it later.
+Export the effective composition as a lockfile; `snapshot --against <lock>` reports drift — bundle version / patch content / package changes — and exits `1`.
 
 </td>
 <td width="50%">
 
 ### 🌐 Service Dependency Graph
-Who provides and consumes each service — and the **disable-cascade**: exactly which dependents go down if you disable X.
+Who provides and consumes each service — and the full **transitive** disable-cascade: not just direct consumers, but everything downstream of the services they re-provide.
+
+```console
+$ npx dsh-xray deps
+# disable-cascade (transitive consumers of each provider):
+  Loader → 5 plugin(s): AgentPresets, ClientModuleRegistry, Hmr, …
+  TimerService → 1 plugin(s): Hmr
+```
 
 ### 💊 Runtime Health
 Per-plugin fiber lifecycle state, startup failures, pending injects, transition history.
@@ -140,7 +147,7 @@ Heuristic static scan of out-of-tree plugins: network egress, shell, filesystem,
   <img src="./assets/section-agent.svg" width="100%" alt="Agent Tool">
 </p>
 
-Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow`), so an agent can answer:
+Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow | skills | requests`), so an agent can answer:
 
 > *"What capabilities do I have?" / "What plugin provides X?" / "Why is Y unavailable?"*
 
@@ -159,6 +166,17 @@ Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summa
 - The mounted plugin writes only under `$DSH_HOME/xray/` — entry text is served live, **never persisted**
 - The entry endpoint returns composition-layer text only, **never session messages**
 - See [SECURITY.md](./SECURITY.md)
+
+## Analysis modes
+
+Every result names its trust boundary:
+
+| Mode | Commands | Boundary |
+| --- | --- | --- |
+| **Static** | `attribute`, `conflicts`, `snapshot` | Exact replay of the on-disk layer stack; works even when dsh cannot boot. Cannot observe runtime behavior. |
+| **Static + spawn** | `diff` | Replays the layers, then spawns `dsh --dump-config` to compare declared vs. actual. |
+| **Runtime** | `deps`, `health`, `cost`, `shadow`, tab, `/xray` panel, agent tool | Observed from the running composition (`$DSH_HOME/xray/runtime.json`); valid for the current session only. Token counts are estimates (~4 chars/token) unless you open the entry text and count. |
+| **Heuristic** | `audit` | Pattern scan over source text; false positives and negatives are expected. A flag means "this pattern appears", never "this plugin is malicious". |
 
 ---
 
@@ -192,12 +210,12 @@ npx dsh-xray health                               # reads the runtime snapshot
 
 Uninstall: `dsh plugin --profile web remove dsh-xray`.
 
-| Command | Behavior |
+| Command | Exit code |
 | --- | --- |
-| `diff` | Exits `1` when the trees disagree |
-| `health` | Exits `1` when any plugin is unhealthy |
-| `attribute`, `conflicts`, `snapshot` | Fully static — work even when dsh cannot start |
-| `deps`, `health` | Read runtime snapshot at `$DSH_HOME/xray/runtime.json` |
+| `diff` | `1` when the trees disagree |
+| `health` | `1` when any plugin is unhealthy |
+| `snapshot --against <lock>` | `1` when the composition drifted |
+| `shadow` | `1` when any service has multiple providers |
 
 ---
 
