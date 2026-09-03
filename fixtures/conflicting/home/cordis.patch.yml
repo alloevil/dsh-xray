@@ -1,0 +1,3 @@
+- id: svc
+  config:
+    timeout: 5000

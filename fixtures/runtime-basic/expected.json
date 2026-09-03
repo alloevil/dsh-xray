@@ -1,0 +1,249 @@
+{
+  "deps": {
+    "schema": "dsh-xray/deps@1",
+    "services": {
+      "tools": {
+        "providers": [
+          "ToolRuntime"
+        ],
+        "consumers": [
+          "AgentLoop"
+        ]
+      },
+      "storage": {
+        "providers": [
+          "ShadowA",
+          "ShadowB"
+        ],
+        "consumers": []
+      },
+      "ghost-service": {
+        "providers": [],
+        "consumers": [
+          "Waiting"
+        ]
+      }
+    },
+    "cascade": {
+      "ToolRuntime": [
+        "AgentLoop"
+      ]
+    },
+    "unsatisfied": [
+      {
+        "plugin": "Waiting",
+        "service": "ghost-service"
+      }
+    ]
+  },
+  "health": {
+    "schema": "dsh-xray/health@1",
+    "healthy": [
+      "ToolRuntime",
+      "AgentLoop",
+      "ShadowA",
+      "ShadowB"
+    ],
+    "waiting": [
+      {
+        "name": "Waiting",
+        "inject": [
+          "ghost-service"
+        ]
+      }
+    ],
+    "unhealthy": [
+      {
+        "name": "Broken",
+        "fibers": [
+          {
+            "uid": 3,
+            "state": "FAILED",
+            "error": "boom"
+          }
+        ],
+        "transitions": [
+          {
+            "state": "LOADING",
+            "at": 1767225600000
+          },
+          {
+            "state": "FAILED",
+            "at": 1767225601000
+          }
+        ]
+      }
+    ],
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "cost": {
+    "schema": "dsh-xray/cost@1",
+    "totalTokens": 720,
+    "toolTokens": 420,
+    "sectionTokens": 300,
+    "toolCount": 2,
+    "sectionCount": 2,
+    "tools": [
+      {
+        "name": "bash",
+        "tokens": 300,
+        "share": 41.7,
+        "owner": null
+      },
+      {
+        "name": "xray_composition",
+        "tokens": 120,
+        "share": 16.7,
+        "owner": "dsh-xray"
+      }
+    ],
+    "sections": [
+      {
+        "name": "app:web-surface",
+        "tokens": 200,
+        "share": 27.8,
+        "owner": "WebSurface"
+      },
+      {
+        "name": "tool:goal",
+        "tokens": 100,
+        "share": 13.9,
+        "owner": null
+      }
+    ],
+    "owners": [
+      {
+        "plugin": "unattributed",
+        "tokens": 400,
+        "sections": 1,
+        "tools": 1,
+        "entries": [
+          {
+            "kind": "tool",
+            "name": "bash",
+            "tokens": 300
+          },
+          {
+            "kind": "section",
+            "name": "tool:goal",
+            "tokens": 100
+          }
+        ],
+        "share": 55.6
+      },
+      {
+        "plugin": "WebSurface",
+        "tokens": 200,
+        "sections": 1,
+        "tools": 0,
+        "entries": [
+          {
+            "kind": "section",
+            "name": "app:web-surface",
+            "tokens": 200
+          }
+        ],
+        "share": 27.8
+      },
+      {
+        "plugin": "dsh-xray",
+        "tokens": 120,
+        "sections": 0,
+        "tools": 1,
+        "entries": [
+          {
+            "kind": "tool",
+            "name": "xray_composition",
+            "tokens": 120
+          }
+        ],
+        "share": 16.7
+      }
+    ],
+    "promptObservedAt": 1767225600000,
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "shadow": {
+    "schema": "dsh-xray/shadow@1",
+    "services": [
+      {
+        "service": "storage",
+        "providers": [
+          "ShadowA",
+          "ShadowB"
+        ]
+      }
+    ],
+    "registrars": [
+      {
+        "plugin": "ToolRuntime",
+        "registrations": 1
+      }
+    ]
+  },
+  "skills": {
+    "schema": "dsh-xray/skills@1",
+    "available": true,
+    "skills": [
+      {
+        "name": "deploy",
+        "provider": "dsh-skills",
+        "source": "user",
+        "modelInvocable": true,
+        "catalogTokens": 30,
+        "bodyTokens": 900
+      },
+      {
+        "name": "hidden",
+        "provider": "dsh-skills",
+        "source": "user",
+        "modelInvocable": false,
+        "catalogTokens": 25,
+        "bodyTokens": 400
+      }
+    ],
+    "totals": {
+      "count": 2,
+      "invocable": 1,
+      "catalogEntryTokens": 30,
+      "catalogOverheadTokens": 40,
+      "residentTokens": 70
+    },
+    "observedAt": "2026-01-01T00:00:00.000Z",
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "requests": {
+    "schema": "dsh-xray/requests@1",
+    "available": true,
+    "sessions": [
+      {
+        "sessionId": "sess-1",
+        "lastAt": 1767225700000,
+        "requests": [
+          {
+            "seq": 1,
+            "at": 1767225700000,
+            "purpose": "chat",
+            "provider": "deepseek",
+            "model": "deepseek-chat",
+            "total": 1200,
+            "system": 500,
+            "toolSchemas": 420,
+            "history": 200,
+            "toolResults": 80,
+            "toolResultRows": [
+              {
+                "tool": "bash",
+                "tokens": 80
+              }
+            ],
+            "historyMessages": 3,
+            "prefixStable": true,
+            "deltaTotal": 150
+          }
+        ]
+      }
+    ],
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  }
+}

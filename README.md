@@ -79,7 +79,7 @@ The same data flows through three surfaces: the **X-Ray tab** (native GUI), the 
 
 ```sh
 npx dsh-xray attribute   # which layer introduced each row, and who patched it since
-npx dsh-xray conflicts   # rows whose fields have multiple writers, and who wins
+npx dsh-xray conflicts   # contested fields with per-writer evidence: file:line, value, winner
 npx dsh-xray diff        # declared (static layers) vs actual (dump-config) tree
 npx dsh-xray snapshot    # content-addressed lockfile; --against <lock> reports drift, exits 1
 npx dsh-xray deps [svc]  # service dependency graph: providers, consumers, transitive disable-cascade
@@ -91,7 +91,7 @@ npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touc
 
 ![dsh-xray demo](./docs/demo.svg)
 
-`attribute`, `conflicts`, and `snapshot` are fully static — they work even when dsh cannot boot. All commands take `--profile <name>` (default `web`) and `--json`. Exit codes slot into CI: `diff` (trees disagree), `health` (unhealthy plugin), `snapshot --against <lock>` (composition drifted) and `shadow` (multi-provider service) all exit `1`.
+`attribute`, `conflicts`, and `snapshot` are fully static — they work even when dsh cannot boot. All commands take `--profile <name>` (default `web`) and `--json`; every JSON payload carries a versioned `schema` field (`dsh-xray/<view>@1`) so machine consumers detect shape changes instead of guessing. Exit codes slot into CI: `diff` (trees disagree), `health` (unhealthy plugin), `snapshot --against <lock>` (composition drifted) and `shadow` (multi-provider service) all exit `1`.
 
 ---
 

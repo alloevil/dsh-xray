@@ -1,0 +1,4 @@
+{
+  "name": "dsh-profile-test",
+  "dsh": { "profile": { "bundles": [] } }
+}

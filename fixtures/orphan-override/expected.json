@@ -1,0 +1,37 @@
+{
+  "attribute": {
+    "schema": "dsh-xray/attribute@1",
+    "rows": [
+      {
+        "id": "real",
+        "name": "plugin-real",
+        "disabled": false,
+        "origin": {
+          "layer": "profile-patch",
+          "kind": "profile-patch",
+          "file": "<HOME>/profiles/test/cordis.patch.yml",
+          "line": 1
+        },
+        "overrides": []
+      }
+    ],
+    "orphans": [
+      {
+        "layer": "home-patch",
+        "kind": "home-patch",
+        "file": "<HOME>/cordis.patch.yml",
+        "line": 1,
+        "id": "ghost",
+        "fields": [
+          "config"
+        ]
+      }
+    ],
+    "warnings": []
+  },
+  "conflicts": {
+    "schema": "dsh-xray/conflicts@1",
+    "semantics": "per-field last-writer-wins, layers applied in load order",
+    "conflicts": []
+  }
+}

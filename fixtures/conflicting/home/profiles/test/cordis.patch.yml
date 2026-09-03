@@ -1,0 +1,8 @@
+- insert:
+    - id: svc
+      name: plugin-svc
+      config:
+        timeout: 3000
+- id: svc
+  config:
+    timeout: 4000

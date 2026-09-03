@@ -1,0 +1,90 @@
+{
+  "attribute": {
+    "schema": "dsh-xray/attribute@1",
+    "rows": [
+      {
+        "id": "svc",
+        "name": "plugin-svc",
+        "disabled": false,
+        "origin": {
+          "layer": "profile-patch",
+          "kind": "profile-patch",
+          "file": "<HOME>/profiles/test/cordis.patch.yml",
+          "line": 1
+        },
+        "overrides": [
+          {
+            "layer": "profile-patch",
+            "kind": "profile-patch",
+            "file": "<HOME>/profiles/test/cordis.patch.yml",
+            "line": 6,
+            "fields": [
+              "config"
+            ]
+          },
+          {
+            "layer": "home-patch",
+            "kind": "home-patch",
+            "file": "<HOME>/cordis.patch.yml",
+            "line": 1,
+            "fields": [
+              "config"
+            ]
+          }
+        ]
+      }
+    ],
+    "orphans": [],
+    "warnings": []
+  },
+  "conflicts": {
+    "schema": "dsh-xray/conflicts@1",
+    "semantics": "per-field last-writer-wins, layers applied in load order",
+    "conflicts": [
+      {
+        "id": "svc",
+        "fields": [
+          {
+            "field": "config",
+            "writers": [
+              {
+                "layer": "profile-patch",
+                "kind": "profile-patch",
+                "action": "insert",
+                "file": "<HOME>/profiles/test/cordis.patch.yml",
+                "line": 1,
+                "value": {
+                  "timeout": 3000
+                }
+              },
+              {
+                "layer": "profile-patch",
+                "kind": "profile-patch",
+                "action": "override",
+                "file": "<HOME>/profiles/test/cordis.patch.yml",
+                "line": 6,
+                "value": {
+                  "timeout": 4000
+                }
+              },
+              {
+                "layer": "home-patch",
+                "kind": "home-patch",
+                "action": "override",
+                "file": "<HOME>/cordis.patch.yml",
+                "line": 1,
+                "value": {
+                  "timeout": 5000
+                }
+              }
+            ],
+            "winner": "home-patch",
+            "effective": {
+              "timeout": 5000
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

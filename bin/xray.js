@@ -58,13 +58,24 @@ function cmdConflicts(args) {
   const data = collectStatic(args.profile);
   const result = model.conflicts(data);
   if (args.json) return console.log(JSON.stringify(result, null, 2));
-  if (!result.length) return console.log('no contested rows: every field has a single writer');
-  for (const c of result) {
+  if (!result.conflicts.length)
+    return console.log('no contested rows: every field has a single writer');
+  const path = require('node:path');
+  const show = (v) => {
+    const s = JSON.stringify(v) ?? '(unset)';
+    return s.length > 48 ? `${s.slice(0, 45)}…` : s;
+  };
+  for (const c of result.conflicts) {
     console.log(`${c.id}`);
     for (const f of c.fields) {
-      console.log(
-        `  .${f.field}: ${f.writers.map((w) => w.layer).join(' → ')}  (winner: ${f.winner})`,
-      );
+      console.log(`  .${f.field} — winner: ${f.winner} (last writer wins)`);
+      for (const w of f.writers) {
+        const loc = w.file
+          ? `  ${path.relative(data.home, w.file)}${w.line ? `:${w.line}` : ''}`
+          : '';
+        console.log(`    ${pad(w.layer, 24)} ${pad(w.action, 9)} ${pad(show(w.value), 48)}${loc}`);
+      }
+      console.log(`    effective: ${show(f.effective)}`);
     }
   }
 }

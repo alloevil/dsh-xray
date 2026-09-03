@@ -1,0 +1,3 @@
+- id: ghost
+  config:
+    timeout: 1

@@ -78,7 +78,7 @@ cost 视图回答一个别的工具都不问的问题:**这段上下文是谁放
 
 ```sh
 npx dsh-xray attribute   # 每一行由哪层引入、之后被谁 patch 过
-npx dsh-xray conflicts   # 哪些行的字段有多个写者、最终谁赢
+npx dsh-xray conflicts   # 有争议的字段,带每个写者的证据:file:line、写入值、赢家
 npx dsh-xray diff        # 声明(静态层)vs 实际(dump-config)组合树
 npx dsh-xray snapshot    # 内容寻址 lockfile;--against <lock> 对比漂移,漂移时退出码 1
 npx dsh-xray deps [svc]  # 服务依赖图:提供者、消费者、传递性停用级联
@@ -90,7 +90,7 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 
 ![dsh-xray 演示](./demo.svg)
 
-`attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)均返回 `1`。
+`attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;所有 JSON 输出都带版本化的 `schema` 字段(`dsh-xray/<view>@1`),机器消费方据此识别结构变化而不必猜。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)均返回 `1`。
 
 ---
 

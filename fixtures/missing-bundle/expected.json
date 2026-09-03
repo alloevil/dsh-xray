@@ -1,0 +1,16 @@
+{
+  "attribute": {
+    "schema": "dsh-xray/attribute@1",
+    "rows": [],
+    "orphans": [],
+    "warnings": [
+      "bundle not resolvable: @fixture/ghost-bundle",
+      "dependency not installed: dsh-ghost"
+    ]
+  },
+  "conflicts": {
+    "schema": "dsh-xray/conflicts@1",
+    "semantics": "per-field last-writer-wins, layers applied in load order",
+    "conflicts": []
+  }
+}

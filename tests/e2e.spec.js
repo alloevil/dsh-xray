@@ -28,7 +28,7 @@ test('e2e: attribute lists rows with layer origins', { skip: !hasProfile }, () =
 
 test('e2e: conflicts reports multi-writer fields with winners', { skip: !hasProfile }, () => {
   const out = JSON.parse(cli('conflicts', '--json'));
-  for (const c of out) {
+  for (const c of out.conflicts) {
     for (const f of c.fields) {
       assert.equal(f.winner, f.writers[f.writers.length - 1].layer, 'last writer wins');
     }

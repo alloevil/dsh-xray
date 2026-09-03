@@ -1,0 +1,114 @@
+{
+  "schema": "dsh-xray/runtime@1",
+  "capturedAt": "2026-01-01T00:00:00.000Z",
+  "registrySize": 6,
+  "plugins": [
+    {
+      "name": "ToolRuntime",
+      "inject": [],
+      "provide": ["tools"],
+      "fibers": [
+        {
+          "uid": 1,
+          "state": "ACTIVE",
+          "error": null,
+          "effects": [{ "label": "tools.register(xray_composition)" }]
+        }
+      ]
+    },
+    {
+      "name": "AgentLoop",
+      "inject": ["tools"],
+      "provide": [],
+      "fibers": [{ "uid": 2, "state": "ACTIVE", "error": null, "effects": [] }]
+    },
+    {
+      "name": "Broken",
+      "inject": [],
+      "provide": [],
+      "fibers": [{ "uid": 3, "state": "FAILED", "error": "boom", "effects": [] }]
+    },
+    {
+      "name": "Waiting",
+      "inject": ["ghost-service"],
+      "provide": [],
+      "fibers": [{ "uid": 4, "state": "PENDING", "error": null, "effects": [] }]
+    },
+    {
+      "name": "ShadowA",
+      "inject": [],
+      "provide": ["storage"],
+      "fibers": [{ "uid": 5, "state": "ACTIVE", "error": null, "effects": [] }]
+    },
+    {
+      "name": "ShadowB",
+      "inject": [],
+      "provide": ["storage"],
+      "fibers": [{ "uid": 6, "state": "ACTIVE", "error": null, "effects": [] }]
+    }
+  ],
+  "services": [
+    { "name": "tools", "provider": "ToolRuntime" },
+    { "name": "storage", "provider": "ShadowA" }
+  ],
+  "tools": [
+    { "name": "xray_composition", "description": "introspect", "tokens": 120 },
+    { "name": "bash", "description": "run", "tokens": 300 }
+  ],
+  "sectionOwners": { "app:web-surface": "WebSurface" },
+  "toolOwners": { "xray_composition": "dsh-xray" },
+  "transitions": {
+    "Broken": [
+      { "state": "LOADING", "at": 1767225600000 },
+      { "state": "FAILED", "at": 1767225601000 }
+    ]
+  },
+  "promptAssembly": {
+    "at": 1767225600000,
+    "sections": [
+      { "name": "app:web-surface", "tokens": 200 },
+      { "name": "tool:goal", "tokens": 100 }
+    ]
+  },
+  "skillCatalog": {
+    "capturedAt": "2026-01-01T00:00:00.000Z",
+    "catalogOverheadTokens": 40,
+    "skills": [
+      {
+        "name": "deploy",
+        "provider": "dsh-skills",
+        "source": "user",
+        "modelInvocable": true,
+        "catalogTokens": 30,
+        "bodyTokens": 900
+      },
+      {
+        "name": "hidden",
+        "provider": "dsh-skills",
+        "source": "user",
+        "modelInvocable": false,
+        "catalogTokens": 25,
+        "bodyTokens": 400
+      }
+    ]
+  },
+  "requestLedger": {
+    "sess-1": [
+      {
+        "at": 1767225700000,
+        "purpose": "chat",
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "total": 1200,
+        "system": 500,
+        "toolSchemas": 420,
+        "history": 200,
+        "toolResults": 80,
+        "toolResultRows": [{ "tool": "bash", "tokens": 80 }],
+        "historyMessages": 3,
+        "prefixStable": true,
+        "deltaTotal": 150
+      }
+    ]
+  }
+}

@@ -37,7 +37,7 @@ test('last writer wins per contested field', () => {
   const l1 = layer('bundle', 'app', [{ id: 'b', config: { x: 2 } }]);
   const l2 = layer('profile-patch', 'profile-patch', [{ id: 'b', config: { x: 3 } }]);
   const out = conflicts({ layers: [base, l1, l2] });
-  const field = out.find((c) => c.id === 'b').fields.find((f) => f.field === 'config');
+  const field = out.conflicts.find((c) => c.id === 'b').fields.find((f) => f.field === 'config');
   assert.equal(field.winner, 'profile-patch');
   assert.equal(field.writers.length, 3); // insert + two overrides
 });
@@ -82,4 +82,16 @@ test('parseDump maps provenance headers to following rows', () => {
 test('!!js expressions parse as opaque markers', () => {
   const { rows } = parseDump("- id: r1\n  config:\n    root: !!js dshHomePath('sessions')\n");
   assert.deepEqual(rows[0].config.root, { $js: "dshHomePath('sessions')" });
+});
+
+test('conflict writers carry file and value; contested fields carry effective', () => {
+  const l1 = layer('bundle', 'app', [{ id: 'b', config: { x: 2 } }]);
+  const l2 = layer('profile-patch', 'profile-patch', [{ id: 'b', config: { x: 3 } }]);
+  const out = conflicts({ layers: [base, l1, l2] });
+  const field = out.conflicts.find((c) => c.id === 'b').fields.find((f) => f.field === 'config');
+  assert.deepEqual(field.effective, { x: 3 });
+  assert.deepEqual(field.writers[0].value, { x: 1 }); // the insert's original value
+  const last = field.writers[field.writers.length - 1];
+  assert.equal(last.file, '/x/profile-patch.yml');
+  assert.deepEqual(last.value, { x: 3 });
 });
