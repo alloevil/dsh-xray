@@ -1,6 +1,6 @@
 {
   "name": "dsh-xray",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "description": "X-ray for your DeepSeek Harness — diagnostics for what's actually loaded, why, and what it costs: per-plugin context-tax attribution, per-request token ledger, skill catalog pricing, dependency cascades.",
   "repository": {
     "type": "git",
@@ -48,7 +48,7 @@
     "dependency-graph",
     "observability",
     "audit",
-    "security-scan",
+    "capability-scan",
     "token-cost",
     "lockfile",
     "troubleshooting",

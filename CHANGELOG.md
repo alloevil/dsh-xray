@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.11.0 — 2026-09-03
+
+- **Breaking:** `conflicts --json` now emits `{ schema, semantics, conflicts }`
+  instead of a bare array.
+- Evidence-grade conflicts: every writer carries file, source line, and the
+  value it wrote; every contested field reports its effective value and the
+  win rule. `attribute` origins and overrides carry file:line too. The CLI
+  renders the full chain so "why is this a conflict?" is checkable.
+- `verify`: reconcile the declared (static) composition against the runtime
+  registry snapshot — declared-but-not-running, disabled-but-running,
+  runtime-only plugins, unsatisfied injects, snapshot staleness. Exits 1 on
+  any mismatch.
+- Every JSON payload — 12 views across the CLI, `/xray/api/*`, and the
+  `xray_composition` tool — carries a versioned `schema` field
+  (`dsh-xray/<view>@1`) so machine consumers detect shape changes.
+- Golden fixtures: `fixtures/<scenario>/` pairs complete input compositions
+  (synthetic DSH_HOME trees, captured runtime snapshots) with the exact
+  expected output of every command reading them; regenerate intentional
+  changes with `UPDATE_GOLDEN=1 npm test`.
+- Docs-drift guard: a test extracts every CLI command, flag, and agent-tool
+  view from the source and fails when either README omits one. It already
+  caught two: `snapshot --against` (missing from README.md) and the
+  `skills | requests` tool views (missing from both).
+- README (en/zh): `snapshot --against` and its exit code, the transitive
+  nature of the disable-cascade with a real `deps` block, an "Analysis modes"
+  section naming each command's trust boundary (static / static+spawn /
+  static+runtime / runtime / heuristic), and `shadow`'s exit code.
+- npm keyword `security-scan` → `capability-scan`: `audit` is a capability
+  inventory, not a security scanner.
+
 ## 0.10.2 — 2026-08-28
 
 - npm was rendering the CHINESE readme as the package page (its readme

@@ -134,3 +134,37 @@ system / tool schemas / history / tool-results,ring buffer
 - CLI `requests` 命令(面板视图的 CLI 孪生,现缺)。
 - 归因视图与 deps 联动提示(一期展示节里承诺过"点开显示
   disable-cascade 摘要",尚未实现,属欠账)。
+
+## 证据化与对账轨(登记 2026-09-03,已实现于 0.11.0,待拍板是否保留方向)
+
+起因:一份外部评审提出 11 点;逐条核实后 5 条成立、4 条部分成立、
+2 条属产品方向。评审还漏看了三个已有功能(`snapshot --against`、级联的
+传递性、模式边界),根因是这些信息只存在于 `--help`、CHANGELOG、SVG 或
+中文 README——不在 README.md 里的功能对外部读者等于不存在。
+
+### 做了
+
+- **证据模型**:`replayLayers` 事件带 file/line/values/before;`conflicts`
+  每个写者可回溯到 `file:line` 与写入值,字段带 effective 与胜出规则。
+- **`verify`**:静态声明 ↔ runtime.json 对账(F12),含 staleness。
+  名字匹配是归一化启发式(loader 名 vs callback 名),runtime-only 只报告
+  不判错。
+- **schema 字段**:12 类 JSON 输出统一 `dsh-xray/<view>@1`;`conflicts`
+  形状 breaking(裸数组 → 对象)。
+- **golden fixtures**:`fixtures/<scenario>/` + `UPDATE_GOLDEN=1` 再生成;
+  CI 上 e2e 全跳,这是"static parser 对但真实组合错"的唯一 CI 兜底。
+- **docs 守卫**:命令/flag/工具 view 从源码提取,README 双语缺一即红。
+- README 新增「Analysis modes」章节;keyword `security-scan` → `capability-scan`。
+
+### 明确不做(本轨)
+
+- 不收敛 CLI 为 `explain/impact`(评审 #9,品味决策,未拍板);
+- 不做 Web「Composition Explorer」(评审 #10,与现有 tab 面板方向重叠);
+- `audit` 单命中不加行号/置信度(评审 #5 余量,需求出现再做);
+- `why <tool>` 反向链(评审 #6 余量):tool 尚不是依赖图节点。
+
+### 评审 11 点对账
+
+| 已解决 | 部分 | 未做 |
+| --- | --- | --- |
+| #1 证据、#2 verify、#7 golden、#8 schema、#11 边界 | #3 lockfile(无 integrity)、#5 audit、#6 impact | #4 cost 归因(**一期已做**)、#9、#10 |
