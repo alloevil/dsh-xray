@@ -156,15 +156,16 @@ system / tool schemas / history / tool-results,ring buffer
 - **docs 守卫**:命令/flag/工具 view 从源码提取,README 双语缺一即红。
 - README 新增「Analysis modes」章节;keyword `security-scan` → `capability-scan`。
 
-### 明确不做(本轨)
+### 明确不做 / 延后(本轨)
 
-- 不收敛 CLI 为 `explain/impact`(评审 #9,品味决策,未拍板);
-- 不做 Web「Composition Explorer」(评审 #10,与现有 tab 面板方向重叠);
-- `audit` 单命中不加行号/置信度(评审 #5 余量,需求出现再做);
-- `why <tool>` 反向链(评审 #6 余量):tool 尚不是依赖图节点。
+- 不收敛 CLI 为 `explain/impact`(issue #4 第 8 点,品味决策,待拍板);
+- 不做 Web「Composition Explorer」(第 9 点,与现有 tab 面板方向重叠);
+- 延后,已拆独立 issue:verify 扩展到 services/tools + `why <tool>` → #10;
+  lockfile 补 integrity/services/tools → #11;audit 单命中 file:line +
+  confidence → #12。
 
-### 评审 11 点对账
+### 与 issue #4(11 点)对账 — #4 已于 2026-09-03 关闭
 
-| 已解决 | 部分 | 未做 |
+| 已解决 | 部分(→ 跟踪 issue) | 未做(待拍板) |
 | --- | --- | --- |
-| #1 证据、#2 verify、#7 golden、#8 schema、#11 边界 | #3 lockfile(无 integrity)、#5 audit、#6 impact | #4 cost 归因(**一期已做**)、#9、#10 |
+| 1 证据、2 schema 字段、3 verify、10 边界、11 golden;4 cost 归因(一期已做) | 3 services/tools 对账、5 why 链 → #10;6 lockfile → #11;7 audit → #12 | 8 CLI 收敛、9 Explorer |
