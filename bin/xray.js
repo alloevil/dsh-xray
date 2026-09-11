@@ -47,7 +47,7 @@ function cmdAttribute(args) {
   }
   if (result.orphans.length) {
     console.log(
-      `\n! ${result.orphans.length} orphan override(s) targeting nonexistent rows (silently skipped by dsh):`,
+      `\n! ${result.orphans.length} orphan override(s) targeting nonexistent rows (dsh warns and skips them):`,
     );
     for (const o of result.orphans) console.log(`  ${o.id}  in ${o.file}`);
   }
@@ -108,7 +108,7 @@ function cmdDiff(args) {
     (r) => `${r.id}: declared=${r.declared} actual=${r.actual}`,
   );
   section(
-    'orphan overrides (silently skipped)',
+    'orphan overrides (dsh warns and skips them)',
     result.orphanOverrides,
     (r) => `${r.id} in ${r.file}`,
   );
@@ -184,7 +184,7 @@ function readRuntimeSnapshot() {
 }
 
 function panelHint(args) {
-  if (!args.json) console.log('\nlive panel: http://localhost:3080/xray');
+  if (!args.json) console.log('\nlive panel: http://127.0.0.1:3080/xray (default bind)');
 }
 
 function cmdDeps(args) {

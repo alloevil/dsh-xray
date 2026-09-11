@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="xray-title xray-desc">
   <title id="xray-title">dsh-xray — per-request context-tax waterfall and disable-cascade</title>
-  <desc id="xray-desc">dsh-xray, X-ray for your DeepSeek Harness. Left: the deps command's disable-cascade, Loader feeding five plugins including AgentPresets, ClientModuleRegistry and Hmr, plus TimerService feeding Hmr. Right: the per-request ledger waterfall, measured on a fixture session: system 500, tool schemas 420, history 200 and tool results 80 cumulative estimated tokens, about 1200 in total, with a stable system plus tools prefix.</desc>
+  <desc id="xray-desc">dsh-xray, X-ray for your DeepSeek Harness. Left: an illustrative disable-cascade capture from an author profile — Loader feeding five plugins including AgentPresets, ClientModuleRegistry and Hmr, plus TimerService feeding Hmr; no committed fixture reproduces those counts. Right: the per-request ledger waterfall, measured on the committed fixture session fixtures/runtime-basic: system 500, tool schemas 420, history 200 and tool results 80 cumulative estimated tokens, about 1200 in total, with a stable system plus tools prefix.</desc>
 
   <rect width="1200" height="420" rx="18" fill="#0d1117"/>
   <rect x="0.5" y="0.5" width="1199" height="419" rx="17.5" fill="none" stroke="#30363d" stroke-width="1"/>

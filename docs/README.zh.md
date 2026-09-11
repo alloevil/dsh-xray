@@ -2,10 +2,12 @@
   <img src="../assets/readme/hero.svg" width="100%" alt="dsh-xray — 单次请求的上下文成本瀑布(system、tools、history、results)与 Loader、TimerService 的停用级联">
 </p>
 
+<p align="center"><sub>token 账单面板取自仓库内 <code>fixtures/runtime-basic</code> 快照;停用级联面板是作者本机组合的示意 capture,本仓库无 fixture 可复现。</sub></p>
+
 <p align="center">
   <a href="https://www.npmjs.com/package/dsh-xray"><img src="https://img.shields.io/npm/v/dsh-xray?style=flat-square&color=00d4aa" alt="npm"></a>
   <a href="https://github.com/alloevil/dsh-xray/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/alloevil/dsh-xray/check.yml?style=flat-square&label=CI" alt="CI"></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/npm/l/dsh-xray?style=flat-square" alt="license"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/npm/l/dsh-xray?style=flat-square" alt="license"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/alloevil/dsh-xray"><img src="https://api.securityscorecards.dev/projects/github.com/alloevil/dsh-xray/badge?style=flat-square" alt="OpenSSF Scorecard"></a>
   <a href="https://codecov.io/gh/alloevil/dsh-xray"><img src="https://img.shields.io/codecov/c/github/alloevil/dsh-xray?style=flat-square" alt="coverage"></a>
 </p>
@@ -91,7 +93,9 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 
 ![dsh-xray 演示](./demo.svg)
 
-`attribute`、`conflicts`、`snapshot` 是纯静态的——dsh 起不来时照样能跑。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;所有 JSON 输出都带版本化的 `schema` 字段(`dsh-xray/<view>@1`),机器消费方据此识别结构变化而不必猜。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)、`verify`(声明与运行时不符)均返回 `1`。
+*演示终端内容是作者本机 `web` profile 的示意 capture(未记录 revision),数字无法由本仓库复现,且随插件增减漂移;可复现的 fixture 及其固化输出见 `fixtures/` 与 `tests/golden.spec.js`。*
+
+`attribute`、`conflicts`、`snapshot` 是静态的——重放磁盘上的层栈,dsh 起不来时照样能跑(`snapshot` 还会采样 `dsh --dump-config` 取组合哈希,dsh 不可用时退化为纯层栈重放)。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;所有 JSON 输出都带版本化的 `schema` 字段(`dsh-xray/<view>@1`),机器消费方据此识别结构变化而不必猜。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)、`verify`(声明与运行时不符)均返回 `1`。
 
 ---
 
@@ -107,7 +111,7 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 每个活跃插件来自哪一层:内核 bundle / profile 依赖 / `cordis.patch.yml` insert / repository 源。
 
 ### 📊 声明 vs 实际 diff
-装了但没生效、卸了但残留 patch 行——包括指向不存在 id 的 patch 行(dsh 会静默跳过)。
+装了但没生效、卸了但残留 patch 行——包括指向不存在 id 的 patch 行(dsh 会输出 stderr 警告后跳过)。
 
 ### ⚡ 冲突检测
 多个插件 patch 同一配置行时,谁静默赢了。
@@ -127,6 +131,8 @@ $ npx dsh-xray deps
   Loader → 5 plugin(s): AgentPresets, ClientModuleRegistry, Hmr, …
   TimerService → 1 plugin(s): Hmr
 ```
+
+*示意 capture:取自作者本机 `web` profile(未记录 revision),本仓库无 fixture 可复现,计数随插件增减漂移;仓库内的运行时 fixture 是合成输入(例如 `fixtures/runtime-basic` 固化为 `ToolRuntime → 1 plugin(s): AgentLoop`)。*
 
 ### 💊 运行时健康
 每个插件的 fiber 生命周期状态、启动失败、等待中的注入、状态迁移史。
@@ -173,7 +179,7 @@ $ npx dsh-xray deps
 
 | 模式 | 命令 | 边界 |
 | --- | --- | --- |
-| **静态** | `attribute`、`conflicts`、`snapshot` | 对磁盘上层栈的精确重放;dsh 起不来也能跑。观测不到运行时行为。 |
+| **静态** | `attribute`、`conflicts`、`snapshot` | 对磁盘上层栈的精确重放;dsh 起不来也能跑。`snapshot` 在 dsh 可用时还会采样 `dsh --dump-config` 取组合哈希。观测不到运行时行为。 |
 | **静态 + 外呼** | `diff` | 重放层栈后,再起一个 `dsh --dump-config` 对比声明与实际。 |
 | **静态 + 运行时** | `verify` | 两侧对账:声明了却没挂载的行、禁用了还在跑的行、只存在于运行时的插件、快照过期。 |
 | **运行时** | `deps`、`health`、`cost`、`shadow`、标签页、`/xray` 面板、agent 工具 | 观测自运行中的组合树(`$DSH_HOME/xray/runtime.json`),只对当前会话有效。token 为估算值(约 4 字符/token),除非你打开条目原文自己数。 |
@@ -206,7 +212,7 @@ dsh plugin --profile web add dsh-xray
 dsh --profile web --dump-config | grep dsh-xray   # 组合树中出现该行
 npx dsh-xray health                               # 读取运行时快照
 # 然后打开任意会话点 X 光标签页,
-# 或访问 http://localhost:3080/xray 看独立面板
+# 或访问 http://127.0.0.1:3080/xray(web app 的默认绑定)看独立面板
 ```
 
 卸载:`dsh plugin --profile web remove dsh-xray`。
@@ -217,7 +223,7 @@ npx dsh-xray health                               # 读取运行时快照
 | `health` | 有插件不健康时 `1` |
 | `snapshot --against <lock>` | 组合漂移时 `1` |
 | `shadow` | 服务被多方提供时 `1` |
-| `verify` | 声明与运行时不符时 `1` |
+| `verify` | 有已声明却没在运行的插件,或禁用了仍在运行的插件时 `1`(仅存在于运行时的子插件只报告,不算失败) |
 
 ---
 

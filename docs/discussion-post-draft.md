@@ -7,11 +7,13 @@
 
 大家好,我做了一个诊断类插件 **dsh-xray**,想解决我自己折腾 profile 时反复遇到的三个问题:
 
-1. `--dump-config` 打出 130 行,但**哪一行是谁引入的**?patch 改了不生效时,是 id 写错被静默跳过,还是被后面的层覆盖了?
+1. `--dump-config` 打出的组合树里,**哪一行是谁引入的**?patch 改了不生效时,是 id 写错被跳过(dsh 会先给 stderr 警告),还是被后面的层覆盖了?
 2. 想停用一个插件,**会连带瘫掉什么**?
 3. 装了一堆插件后,**每次请求的上下文里到底塞了多少东西**?
 
 ## 它长什么样
+
+以下输出是作者本机 profile 的示意 capture(未记录 harness revision,数字未随仓库提供);仓库内 `fixtures/` 是合成输入,格式由 `tests/golden.spec.js` 固化。
 
 ```console
 $ npx dsh-xray attribute
@@ -35,7 +37,7 @@ tool:goal         ~184   11.3%   ██████
 | 命令 | 回答的问题 |
 |---|---|
 | `attribute` | 每一行由哪层引入(bundle / profile patch / home patch / repository 源),之后被谁改过 |
-| `diff` | 声明 vs 实际:抓出被 dsh 静默跳过的 orphan patch 行、装了没生效的插件 |
+| `diff` | 声明 vs 实际:抓出没有对应行的 orphan patch 行(dsh 会先警告)、装了没生效的插件 |
 | `conflicts` | 同一字段多个写者,谁赢了 |
 | `deps` / `health` | 服务依赖图 + 停用级联;每个插件的 fiber 生命周期状态 |
 | `cost` | prompt sections(观测自 system-prompt/assemble)+ tool schemas 的 token 估算 |
@@ -46,7 +48,7 @@ tool:goal         ~184   11.3%   ██████
 
 - **`/xray` Web 面板**(dsh web 里直接开,零依赖零构建)
 - **`xray_composition` agent 工具** — agent 可以自查"我有哪些能力/为什么 Y 不可用"
-- 静态命令(attribute/conflicts/diff/snapshot/audit)**在 dsh 起不来时照样能跑**
+- 静态命令(attribute/conflicts/snapshot/audit)**在 dsh 起不来时照样能跑**(`diff` 需要 `dsh --dump-config`)
 - 与恢复类工具(dsh-doctor 等)互补:它们负责"救回来",xray 负责"看清楚"
 
 ## 安全立场
@@ -60,7 +62,7 @@ dsh plugin --profile web add dsh-xray   # 挂载(面板 + agent 工具 + 运行�
 npx dsh-xray attribute                  # 或者不挂载,直接用静态 CLI
 ```
 
-- GitHub: https://github.com/alloevil/dsh-xray (MIT, CI on Node 22/24, 39 tests)
+- GitHub: https://github.com/alloevil/dsh-xray (MIT, CI on Node 22/24, 70 tests)
 - npm: https://www.npmjs.com/package/dsh-xray (发布带 GitHub Actions provenance)
 
 欢迎 issue / PR,特别想听:你们排查 profile 问题时还缺什么视角?
@@ -71,7 +73,7 @@ npx dsh-xray attribute                  # 或者不挂载,直接用静态 CLI
 
 Hi all — I built **dsh-xray**, a diagnostics plugin for three questions I kept hitting while hacking on profiles:
 
-1. `--dump-config` prints 130 rows, but **which layer introduced each one**? When a patch "doesn't take", is the id wrong (silently skipped) or overridden by a later layer?
+1. `--dump-config` prints a composed tree, but **which layer introduced each one**? When a patch "doesn't take", is the id wrong (dsh warns on stderr, then skips it) or overridden by a later layer?
 2. If I disable plugin X, **what breaks transitively**?
 3. After installing a pile of plugins, **what does every request actually carry** in context?
 
