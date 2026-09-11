@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/hero.svg" width="100%" alt="dsh-xray — X-ray for your DeepSeek Harness">
+  <img src="./assets/readme/hero.svg" width="100%" alt="dsh-xray — the per-request context-tax waterfall (system, tools, history, results) and the disable-cascade from Loader and TimerService">
 </p>
 
 <p align="center">

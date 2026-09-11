@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="xray-title xray-desc">
+  <title id="xray-title">dsh-xray — per-request context-tax waterfall and disable-cascade</title>
+  <desc id="xray-desc">dsh-xray, X-ray for your DeepSeek Harness. Left: the deps command's disable-cascade, Loader feeding five plugins including AgentPresets, ClientModuleRegistry and Hmr, plus TimerService feeding Hmr. Right: the per-request ledger waterfall, measured on a fixture session: system 500, tool schemas 420, history 200 and tool results 80 cumulative estimated tokens, about 1200 in total, with a stable system plus tools prefix.</desc>
+
+  <rect width="1200" height="420" rx="18" fill="#0d1117"/>
+  <rect x="0.5" y="0.5" width="1199" height="419" rx="17.5" fill="none" stroke="#30363d" stroke-width="1"/>
+
+  <g font-family="ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace">
+    <g id="identity" transform="translate(56 0)">
+      <text x="0" y="58" font-size="18" fill="#00d4aa" letter-spacing="2.4">LLM CONTEXT-COST OBSERVABILITY</text>
+      <text x="0" y="124" font-family="-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="56" font-weight="700" fill="#e6edf3">dsh-xray</text>
+      <text x="0" y="162" font-family="-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="22" fill="#8b949e">X-ray for your DeepSeek Harness</text>
+      <text x="0" y="200" font-family="-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="19" fill="#8b949e">See what's actually loaded, why,</text>
+      <text x="0" y="224" font-family="-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="19" fill="#8b949e">and what it costs you.</text>
+    </g>
+
+    <line x1="56" y1="264" x2="500" y2="264" stroke="#30363d" stroke-width="1"/>
+
+    <g id="disable-cascade" transform="translate(56 0)">
+      <text x="0" y="292" font-size="18" fill="#00d4aa">$ npx dsh-xray deps</text>
+      <text x="0" y="320" font-size="20" fill="#e6edf3">Loader → 5 plugin(s)</text>
+      <text x="0" y="346" font-size="18" fill="#8b949e">AgentPresets · ClientModuleRegistry</text>
+      <text x="0" y="370" font-size="18" fill="#8b949e">Hmr · …</text>
+      <text x="0" y="394" font-size="18" fill="#8b949e">TimerService → 1 plugin(s): Hmr</text>
+    </g>
+
+    <g id="ledger-panel">
+      <rect x="520.5" y="36.5" width="631" height="357" rx="14" fill="none" stroke="#30363d" stroke-width="1"/>
+      <text x="556" y="76" font-size="18" fill="#8b949e">per-request ledger · requests@1</text>
+      <text x="1120" y="76" font-size="18" fill="#7ee787" text-anchor="end">⚡ prefix stable</text>
+      <text x="556" y="104" font-size="18" fill="#8b949e">cumulative estimated tokens</text>
+      <text x="1120" y="104" font-size="18" fill="#8b949e" text-anchor="end">~4 chars/token</text>
+
+      <line x1="556" y1="148" x2="1120" y2="148" stroke="#7ee787" stroke-width="1" stroke-opacity="0.45" stroke-dasharray="6 6"/>
+
+      <g id="waterfall">
+        <rect x="556" y="242.5" width="132" height="67.5" fill="#00d4aa"/>
+        <rect x="700" y="185.8" width="132" height="124.2" fill="#00d4aa"/>
+        <rect x="844" y="158.8" width="132" height="151.2" fill="#00d4aa"/>
+        <rect x="988" y="148" width="132" height="162" fill="#00d4aa"/>
+
+        <text x="622" y="228" font-size="20" font-weight="700" fill="#e6edf3" text-anchor="middle">500</text>
+        <text x="766" y="172" font-size="20" font-weight="700" fill="#e6edf3" text-anchor="middle">920</text>
+        <text x="910" y="136" font-size="20" font-weight="700" fill="#e6edf3" text-anchor="middle">1120</text>
+        <text x="1054" y="134" font-size="20" font-weight="700" fill="#7ee787" text-anchor="middle">~1200</text>
+
+        <text x="622" y="338" font-size="20" fill="#e6edf3" text-anchor="middle">system</text>
+        <text x="766" y="338" font-size="20" fill="#e6edf3" text-anchor="middle">tools</text>
+        <text x="910" y="338" font-size="20" fill="#e6edf3" text-anchor="middle">history</text>
+        <text x="1054" y="338" font-size="20" fill="#e6edf3" text-anchor="middle">results</text>
+
+        <text x="622" y="362" font-size="18" fill="#8b949e" text-anchor="middle">~500</text>
+        <text x="766" y="362" font-size="18" fill="#8b949e" text-anchor="middle">~420</text>
+        <text x="910" y="362" font-size="18" fill="#8b949e" text-anchor="middle">~200</text>
+        <text x="1054" y="362" font-size="18" fill="#8b949e" text-anchor="middle">~80</text>
+      </g>
+    </g>
+  </g>
+</svg>

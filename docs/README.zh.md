@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../assets/hero.svg" width="100%" alt="dsh-xray — 给你的 DeepSeek Harness 拍 X 光">
+  <img src="../assets/readme/hero.svg" width="100%" alt="dsh-xray — 单次请求的上下文成本瀑布(system、tools、history、results)与 Loader、TimerService 的停用级联">
 </p>
 
 <p align="center">
