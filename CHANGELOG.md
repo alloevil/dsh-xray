@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — wording corrections (no behaviour change)
+
+- Hermes/`verify` help text: "orphan override(s) … silently skipped by dsh" now reads
+  "dsh warns and skips them", and the panel hint says `127.0.0.1:3080` (the web app's
+  default bind) instead of `localhost`. The corresponding lines in the 0.5.0 and 0.11.0
+  notes below still carry the old wording on purpose — released notes are a record of what
+  was shipped then, not a description of today's binary.
+
 ## 0.11.0 — 2026-09-03
 
 - **Breaking:** `conflicts --json` now emits `{ schema, semantics, conflicts }`
