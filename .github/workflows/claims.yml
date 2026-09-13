@@ -1,15 +1,29 @@
 name: claims
+
+# Runs the receipts behind claims.json: every published number must still be printed by the
+# command next to it. Weekly as well as on push, because data moves without anyone committing.
+#
+# The checks run this repo's own CLI (bin/xray.js) and its test runner, so the job installs
+# dependencies exactly the way check.yml does — pnpm, frozen lockfile, same pinned actions.
 on:
   push:
   pull_request:
   schedule:
     - cron: "17 6 * * 1"
+
 permissions:
   contents: read
+
 jobs:
   verify:
     name: published numbers still reproduce
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - uses: alloevil/verify-claims@v0.1.0
