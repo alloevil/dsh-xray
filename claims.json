@@ -113,7 +113,7 @@
       "claim": "The suite is 62 unit tests plus 8 end-to-end tests that drive a real dsh install and skip cleanly when none is present.",
       "value": "62 unit + 8 e2e",
       "metric": "tests reported by the runner for the unit specs (the e2e file needs a live dsh)",
-      "method": "node --test over every spec except e2e.spec.js; the runner's own TAP summary is asserted",
+      "method": "node --test over every spec except e2e.spec.js; the runner's own TAP summary is asserted on the discovered count and on zero failures, both of which hold with and without a dsh install",
       "repro": "node --test $(ls tests/*.spec.js | grep -v e2e.spec.js)",
       "evidence": "docs/discussion-post-draft.md:65; package.json (scripts.test); CHANGELOG.md (Unreleased gate line)",
       "verified": "2026-09-13",
@@ -122,11 +122,11 @@
         "expect": {
           "contains": [
             "tests=62 ",
-            "pass=62 ",
             "fail=0 "
           ]
         },
-        "timeout": 120
+        "timeout": 120,
+        "note": "asserts the discovered count and zero failures; the pass count varies (62 with a live dsh, 59 without — three unit tests skip too), so it is not asserted"
       },
       "as_of": "2026-09-13"
     },
