@@ -89,6 +89,7 @@ npx dsh-xray health      # plugin lifecycle health: failed fibers, pending injec
 npx dsh-xray cost        # context cost: prompt sections + tool schemas, estimated tokens
 npx dsh-xray shadow      # services provided by multiple plugins
 npx dsh-xray verify      # declared (static) rows ↔ runtime registry, exits 1 on mismatch
+npx dsh-xray why <tool>  # provenance chain for one tool: owner plugin, its injects, their providers
 npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touchpoints
 ```
 
@@ -96,7 +97,7 @@ npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touc
 
 *The demo transcript is an illustrative capture from an author's `web` profile (revision unrecorded) — its figures are not reproducible from this repo and drift as the profile gains plugins; the committed fixtures and their pinned outputs live in `fixtures/` and `tests/golden.spec.js`.*
 
-`attribute`, `conflicts`, and `snapshot` are static — they replay the on-disk layer stack and work even when dsh cannot boot (`snapshot` additionally samples `dsh --dump-config` for the composed hash, degrading to the layer replay when dsh is unavailable). All commands take `--profile <name>` (default `web`) and `--json`; every JSON payload carries a versioned `schema` field (`dsh-xray/<view>@1`) so machine consumers detect shape changes instead of guessing. Exit codes slot into CI: `diff` (trees disagree), `health` (unhealthy plugin), `snapshot --against <lock>` (composition drifted), `shadow` (multi-provider service) and `verify` (declared ↔ runtime mismatch) all exit `1`.
+`attribute`, `conflicts`, and `snapshot` are static — they replay the on-disk layer stack and work even when dsh cannot boot (`snapshot` additionally samples `dsh --dump-config` for the composed hash, and folds in the runtime services/tools when a snapshot exists, degrading honestly to `null` when it doesn't). All commands take `--profile <name>` (default `web`) and `--json`; every JSON payload carries a versioned `schema` field (`dsh-xray/<view>@N`) so machine consumers detect shape changes instead of guessing. `snapshot`, its `--against` diff, `verify` and `audit` are at `@2` (see the changelog for what moved); every other view is still `@1`. Exit codes slot into CI: `diff` (trees disagree), `health` (unhealthy plugin), `snapshot --against <lock>` (composition drifted), `shadow` (multi-provider service), `verify` (declared ↔ runtime mismatch) and `why` (no tool by that name is attributed) all exit `1`.
 
 ---
 
@@ -118,7 +119,7 @@ Installed-but-inactive, uninstalled-but-lingering patch rows — including patch
 Plugins patching the same config row, and which one silently wins.
 
 ### 📸 Composition Snapshot
-Export the effective composition as a lockfile; `snapshot --against <lock>` reports drift — bundle version / patch content / package changes — and exits `1`.
+Export the effective composition as a lockfile — bundles, patches, and every installed plugin with its provenance (`registry` / `link` / `repository`) and a content hash excluding `node_modules`, plus the services and tools the runtime actually registered. `snapshot --against <lock>` reports drift category by category (bundle version / patch content / package version, source or content / service providers / tool owners and schema size) and exits `1`. A saved lock that cannot answer for a field says so instead of reading as equal.
 
 </td>
 <td width="50%">
@@ -142,7 +143,10 @@ Per-plugin fiber lifecycle state, startup failures, pending injects, transition 
 Same-name registrations where a later writer silently wins — usually an intended override, occasionally a conflict.
 
 ### 🛡️ Capability Audit
-Heuristic static scan of out-of-tree plugins: network egress, shell, filesystem, env, eval.
+Heuristic static scan of out-of-tree plugins: subprocess / shell, network egress, filesystem read and write, environment variables, dynamic code evaluation. Every hit carries `file:line` and the matched line, and every capability carries a confidence derived from two checkable facts — the builtin module is imported and a call site exists (`high`), only one of the two (`medium`), or nothing but a `process.env` lookup that cannot be corroborated (`low`).
+
+### 🔗 Tool Provenance
+`why <tool>` answers "why is this in my context?" as a chain: the tool, the plugin the attribution table says registered it, that plugin's injects, the plugins providing those services, and on up to the ones that inject nothing.
 
 </td>
 </tr>
@@ -182,9 +186,9 @@ Every result names its trust boundary:
 | --- | --- | --- |
 | **Static** | `attribute`, `conflicts`, `snapshot` | Exact replay of the on-disk layer stack; works even when dsh cannot boot. `snapshot` also samples `dsh --dump-config` for the composed hash when dsh is available. Cannot observe runtime behavior. |
 | **Static + spawn** | `diff` | Replays the layers, then spawns `dsh --dump-config` to compare declared vs. actual. |
-| **Static + runtime** | `verify` | Joins both sides: declared rows that never mounted, disabled rows still running, runtime-only plugins, snapshot staleness. |
-| **Runtime** | `deps`, `health`, `cost`, `shadow`, tab, `/xray` panel, agent tool | Observed from the running composition (`$DSH_HOME/xray/runtime.json`); valid for the current session only. Token counts are estimates (~4 chars/token) unless you open the entry text and count. |
-| **Heuristic** | `audit` | Pattern scan over source text; false positives and negatives are expected. A flag means "this pattern appears", never "this plugin is malicious". |
+| **Static + runtime** | `verify` | Joins both sides: declared rows that never mounted, disabled rows still running, runtime-only plugins, snapshot staleness — and, per service and per tool, whether its runtime provider/owner is a declared row. |
+| **Runtime** | `deps`, `health`, `cost`, `shadow`, `verify`'s runtime half, `why`, tab, `/xray` panel, agent tool | Observed from the running composition (`$DSH_HOME/xray/runtime.json`); valid for the current session only. Token counts are estimates (~4 chars/token) unless you open the entry text and count. |
+| **Heuristic** | `audit` | Pattern scan over source text; false positives and negatives are expected. A flag means "this pattern appears", never "this plugin is malicious". Confidence grades how well the pattern is corroborated, not how dangerous it is. |
 
 ---
 
@@ -224,7 +228,8 @@ Uninstall: `dsh plugin --profile web remove dsh-xray`.
 | `health` | `1` when any plugin is unhealthy |
 | `snapshot --against <lock>` | `1` when the composition drifted |
 | `shadow` | `1` when any service has multiple providers |
-| `verify` | `1` when a declared plugin is not running, or a disabled one is (runtime-only subplugins are reported, not failures) |
+| `verify` | `1` when a declared plugin is not running, or a disabled one is (runtime-only subplugins and per-service/tool provenance are reported, not failures) |
+| `why` | `1` when no tool by that name is attributed in the runtime snapshot |
 
 ---
 
@@ -244,6 +249,7 @@ Diagnostic imaging for a running composition — complementary to [dsh-doctor](h
 | Conflict detection | 🔍 Inspection |
 | Composition snapshot | 📦 Export |
 | Static ↔ runtime verification | 🔍 Inspection |
+| Tool provenance chain | 🔍 Inspection |
 | Service dependency graph | 🌐 Runtime |
 | Runtime health | 🌐 Runtime |
 | Service shadowing | 🌐 Runtime |

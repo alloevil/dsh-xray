@@ -10,6 +10,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const model = require('../lib/model.js');
+const { collectAudit } = require('../lib/collect/audit.js');
 
 const FIXTURES = path.join(__dirname, '..', 'fixtures');
 const UPDATE = process.env.UPDATE_GOLDEN === '1';
@@ -48,6 +49,11 @@ for (const name of fs.readdirSync(FIXTURES).sort()) {
   const snapFile = path.join(dir, 'runtime.json');
   const hasHome = fs.existsSync(home);
   const hasSnap = fs.existsSync(snapFile);
+  // Only composition fixtures belong here: a fixture with neither a synthetic
+  // home nor a captured snapshot (e.g. fixtures/lock-drift, which pins the
+  // `snapshot --against` report in tests/compare.spec.js) has no command
+  // output for this runner to pin.
+  if (!hasHome && !hasSnap) continue;
 
   test(`golden: ${name}`, () => {
     const actual = {};
@@ -57,6 +63,10 @@ for (const name of fs.readdirSync(FIXTURES).sort()) {
     if (staticData) {
       actual.attribute = model.attribute(staticData);
       actual.conflicts = model.conflicts(staticData);
+      actual.audit = collectAudit(staticData);
+      // The audit is the one collector that stamps wall-clock time; the golden
+      // pins the shape, not the moment it ran.
+      actual.audit.capturedAt = '<TS>';
     }
     // Runtime side: fixtures/<name>/runtime.json is a captured snapshot
     // (capturedAt frozen in the fixture, so outputs are deterministic).
@@ -68,6 +78,12 @@ for (const name of fs.readdirSync(FIXTURES).sort()) {
       actual.shadow = model.shadowing(snap);
       actual.skills = model.skillCost(snap);
       actual.requests = model.requestLedger(snap);
+      // Every attributed tool gets its provenance chain pinned, so a change in
+      // how a chain is walked shows up as a diff in this fixture.
+      const owned = Object.keys(snap.toolOwners ?? {}).sort();
+      if (owned.length) {
+        actual.why = Object.fromEntries(owned.map((tool) => [tool, model.whyTool(snap, tool)]));
+      }
       // Both sides present: the fixture also pins static↔runtime reconciliation.
       if (staticData) actual.verify = model.verify(staticData, snap);
     }

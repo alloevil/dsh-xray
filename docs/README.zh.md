@@ -88,6 +88,7 @@ npx dsh-xray health      # 插件生命周期健康:失败 fiber、等待中的�
 npx dsh-xray cost        # 上下文成本:prompt sections + 工具 schema 的估算 token 占用
 npx dsh-xray shadow      # 被多个插件同时提供的服务
 npx dsh-xray verify      # 声明(静态)行 ↔ 运行时注册表对账,不一致退出码 1
+npx dsh-xray why <tool>  # 单个工具的溯源链:注册它的插件、它的 inject、这些服务的提供者
 npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ```
 
@@ -95,7 +96,7 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 
 *演示终端内容是作者本机 `web` profile 的示意 capture(未记录 revision),数字无法由本仓库复现,且随插件增减漂移;可复现的 fixture 及其固化输出见 `fixtures/` 与 `tests/golden.spec.js`。*
 
-`attribute`、`conflicts`、`snapshot` 是静态的——重放磁盘上的层栈,dsh 起不来时照样能跑(`snapshot` 还会采样 `dsh --dump-config` 取组合哈希,dsh 不可用时退化为纯层栈重放)。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;所有 JSON 输出都带版本化的 `schema` 字段(`dsh-xray/<view>@1`),机器消费方据此识别结构变化而不必猜。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)、`verify`(声明与运行时不符)均返回 `1`。
+`attribute`、`conflicts`、`snapshot` 是静态的——重放磁盘上的层栈,dsh 起不来时照样能跑(`snapshot` 还会采样 `dsh --dump-config` 取组合哈希;存在运行时快照时一并写入 services/tools,不存在就诚实地记为 `null`)。所有命令支持 `--profile <name>`(默认 `web`)和 `--json`;所有 JSON 输出都带版本化的 `schema` 字段(`dsh-xray/<view>@N`),机器消费方据此识别结构变化而不必猜。`snapshot` 及其 `--against` 差异、`verify`、`audit` 已升到 `@2`(变化见 changelog),其余视图仍为 `@1`。退出码可直接进 CI:`diff`(两树不一致)、`health`(有插件不健康)、`snapshot --against <lock>`(组合漂移)、`shadow`(服务被多方提供)、`verify`(声明与运行时不符)、`why`(快照里没有该工具)均返回 `1`。
 
 ---
 
@@ -117,7 +118,7 @@ npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 多个插件 patch 同一配置行时,谁静默赢了。
 
 ### 📸 组合快照
-把当前生效组合导出为 lockfile;`snapshot --against <lock>` 报告漂移——bundle 版本 / patch 内容 / 包变化——并退出码 `1`。
+把当前生效组合导出为 lockfile——bundle、patch,以及每个已安装插件的来源(`registry` / `link` / `repository`)与排除 `node_modules` 的内容哈希,外加运行时实际注册的 services 与 tools。`snapshot --against <lock>` 逐类报告漂移(bundle 版本 / patch 内容 / 包版本、来源或内容 / 服务提供者 / 工具归属与 schema 体积)并退出码 `1`。老 lock 回答不了的字段会明说,而不是被当作「一致」。
 
 </td>
 <td width="50%">
@@ -141,7 +142,10 @@ $ npx dsh-xray deps
 同名注册中后来者静默胜出——通常是有意覆盖,偶尔是冲突。
 
 ### 🛡️ 能力审计
-对 out-of-tree 插件的启发式静态扫描:网络外发、shell、文件系统、环境变量、eval。
+对 out-of-tree 插件的启发式静态扫描:子进程 / shell、网络外发、文件系统读与写、环境变量、动态求值。每个命中都带 `file:line` 与匹配行;每个 capability 的 confidence 由两个可核对的事实推出——导入了对应内置模块且有调用点(`high`),只有其中之一(`medium`),或只有无法交叉验证的 `process.env`(`low`)。
+
+### 🔗 工具溯源
+`why <tool>` 用一条链回答"它凭什么出现在我的上下文里":工具本身 → 归因表记录的注册插件 → 该插件的 inject → 这些服务的提供者 → 一路到不 inject 任何东西的根插件。
 
 </td>
 </tr>
@@ -181,9 +185,9 @@ $ npx dsh-xray deps
 | --- | --- | --- |
 | **静态** | `attribute`、`conflicts`、`snapshot` | 对磁盘上层栈的精确重放;dsh 起不来也能跑。`snapshot` 在 dsh 可用时还会采样 `dsh --dump-config` 取组合哈希。观测不到运行时行为。 |
 | **静态 + 外呼** | `diff` | 重放层栈后,再起一个 `dsh --dump-config` 对比声明与实际。 |
-| **静态 + 运行时** | `verify` | 两侧对账:声明了却没挂载的行、禁用了还在跑的行、只存在于运行时的插件、快照过期。 |
-| **运行时** | `deps`、`health`、`cost`、`shadow`、标签页、`/xray` 面板、agent 工具 | 观测自运行中的组合树(`$DSH_HOME/xray/runtime.json`),只对当前会话有效。token 为估算值(约 4 字符/token),除非你打开条目原文自己数。 |
-| **启发式** | `audit` | 对源码文本的模式扫描;可能误报漏报。命中只表示"该模式出现在代码里",绝不等于"该插件是恶意的"。 |
+| **静态 + 运行时** | `verify` | 两侧对账:声明了却没挂载的行、禁用了还在跑的行、只存在于运行时的插件、快照过期;并按服务、按工具判断其运行时提供者/归属是否落在声明行内。 |
+| **运行时** | `deps`、`health`、`cost`、`shadow`、`verify` 的运行时半边、`why`、标签页、`/xray` 面板、agent 工具 | 观测自运行中的组合树(`$DSH_HOME/xray/runtime.json`),只对当前会话有效。token 为估算值(约 4 字符/token),除非你打开条目原文自己数。 |
+| **启发式** | `audit` | 对源码文本的模式扫描;可能误报漏报。命中只表示"该模式出现在代码里",绝不等于"该插件是恶意的";confidence 衡量的是模式被佐证的程度,不是危险程度。 |
 
 ---
 
@@ -223,7 +227,8 @@ npx dsh-xray health                               # 读取运行时快照
 | `health` | 有插件不健康时 `1` |
 | `snapshot --against <lock>` | 组合漂移时 `1` |
 | `shadow` | 服务被多方提供时 `1` |
-| `verify` | 有已声明却没在运行的插件,或禁用了仍在运行的插件时 `1`(仅存在于运行时的子插件只报告,不算失败) |
+| `verify` | 有已声明却没在运行的插件,或禁用了仍在运行的插件时 `1`(仅存在于运行时的子插件、按服务/工具的对账结果只报告,不算失败) |
+| `why` | 运行时快照里没有该工具的归属记录时 `1` |
 
 ---
 
@@ -243,6 +248,7 @@ npx dsh-xray health                               # 读取运行时快照
 | 冲突检测 | 🔍 检视 |
 | 组合快照 | 📦 导出 |
 | 静态 ↔ 运行时对账 | 🔍 检视 |
+| 工具溯源链 | 🔍 检视 |
 | 服务依赖图 | 🌐 运行时 |
 | 运行时健康 | 🌐 运行时 |
 | 服务遮蔽 | 🌐 运行时 |

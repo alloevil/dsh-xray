@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.12.0 — 2026-09-16
+
+Evidence-grade audit, a lockfile that can prove provenance, and a provenance chain.
+
+- **Breaking:** `audit --json` moved to `dsh-xray/audit@2`. Each capability is
+  now `{ capability, label, confidence, hits[] }` with `hits` carrying
+  `file:line` and the matched line (≤80 chars) instead of a capped list of
+  filenames, and the capability names say what is touched:
+  `process.spawn` / `network.outbound` / `filesystem.read` / `filesystem.write`
+  / `env.read` / `code.eval` (was `shell` / `network` / `fs` / `env` / `eval`).
+  `confidence` is derived from two checkable facts per package — the
+  corresponding builtin module is imported **and** a call site exists (`high`),
+  only one of the two (`medium`), or neither can corroborate a bare
+  `process.env` lookup (`low`). No scoring model: the rule is the output.
+- **Breaking:** `snapshot --json` moved to `dsh-xray/snapshot@2`, and the
+  `--against` report to `dsh-xray/snapshot-diff@2`. Packages now carry
+  `source` (`registry` / `link` / `repository`) and `integrity` (sha256 over
+  the sorted file list, excluding `node_modules` and `.git`, plus the number of
+  files it covers), and the lockfile records the runtime `services` and `tools`
+  when a runtime snapshot exists — `null`, never `{}`, when it does not. The
+  comparison reports package source/content drift, service provider changes and
+  tool ownership/schema-size changes, accepts `@1` locks, and names what a
+  saved lock cannot answer for in `notices` instead of reading it as equal.
+- **Breaking:** `verify --json` moved to `dsh-xray/verify@2`: it reconciles each
+  runtime service provider and each tool owner against the declared rows
+  (`providerUndeclared` / `providerDisabled`, `ownerUndeclared` /
+  `ownerDisabled`, `unattributed`) and states the boundary in `notes` — the
+  static layers declare ids, names, config and disabled only, so this is an
+  identity reconciliation, not declaration equality. These classes are
+  reported, not failed: a disabled profile row can legitimately be mounted in an
+  agent scope, which is how the harness ships its tool plugins. The exit code
+  is unchanged (a declared plugin that never mounted, or a disabled one still
+  running).
+- New `why <tool>` (`dsh-xray/why@1`): the provenance chain for one registered
+  tool — the owner the attribution table recorded, that plugin's injects, the
+  providers of those services, and on up to the plugins that inject nothing.
+  Cycles stop at the first revisit; an owner missing from the snapshot is marked
+  rather than invented. Exits `1` when the tool has no attribution entry.
+- `audit` walks plugin sources in sorted order and the CLI prints one evidence
+  line per hit; `scan` reads per-line, so a file that cannot match any
+  capability is never split.
+- Fixtures: `fixtures/audit-basic` (a synthetic plugin whose capabilities span
+  the confidence paths), `fixtures/tool-chain` (a five-plugin chain that pins
+  the `why` walk), `fixtures/lock-drift` (pins the `--against` report);
+  `fixtures/runtime-mismatch` now exercises all three reconciliation classes.
+
 ## Unreleased — wording corrections (no behaviour change)
 
 - Hermes/`verify` help text: "orphan override(s) … silently skipped by dsh" now reads

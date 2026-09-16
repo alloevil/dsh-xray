@@ -22,8 +22,22 @@
       "fibers": [{ "uid": 3, "state": "ACTIVE", "error": null, "effects": [] }]
     }
   ],
-  "services": [],
-  "tools": [],
+  "services": [
+    { "name": "alpha-api", "provider": "PluginAlpha" },
+    { "name": "gamma-store", "provider": "PluginGamma" },
+    { "name": "helper-bus", "provider": "ExtraHelper" }
+  ],
+  "tools": [
+    { "name": "alpha_tool", "description": "declared and running", "tokens": 80 },
+    { "name": "gamma_tool", "description": "owned by a disabled row", "tokens": 60 },
+    { "name": "helper_tool", "description": "owned by a runtime-only plugin", "tokens": 40 },
+    { "name": "orphan_tool", "description": "no attribution entry", "tokens": 20 }
+  ],
+  "toolOwners": {
+    "alpha_tool": "PluginAlpha",
+    "gamma_tool": "PluginGamma",
+    "helper_tool": "ExtraHelper"
+  },
   "transitions": {},
   "promptAssembly": null
 }

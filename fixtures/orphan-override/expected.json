@@ -33,5 +33,10 @@
     "schema": "dsh-xray/conflicts@1",
     "semantics": "per-field last-writer-wins, layers applied in load order",
     "conflicts": []
+  },
+  "audit": {
+    "schema": "dsh-xray/audit@2",
+    "capturedAt": "<TS>",
+    "plugins": []
   }
 }

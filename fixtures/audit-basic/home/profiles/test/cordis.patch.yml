@@ -1,0 +1,7 @@
+- insert:
+    - id: risky
+      name: risky-plugin
+    - id: ghost
+      name: ghost-plugin
+- id: ghost
+  disabled: true
