@@ -43,8 +43,12 @@ test('e2e: diff agrees on an untouched tree (spawns dsh)', { skip: !hasProfile }
 
 test('e2e: snapshot emits the lockfile schema', { skip: !hasProfile }, () => {
   const out = JSON.parse(cli('snapshot'));
-  assert.equal(out.schema, 'dsh-xray/snapshot@1');
+  assert.equal(out.schema, 'dsh-xray/snapshot@2');
   assert.ok(out.bundles.every((b) => /^[0-9a-f]{16}$/.test(b.patchHash)));
+  assert.ok(
+    out.packages.every((p) => p.source && p.integrity?.startsWith('sha256-')),
+    'every installed plugin carries provenance and a content hash',
+  );
 });
 
 test('e2e: deps resolves core services from the live snapshot', { skip: !hasRuntime }, () => {
@@ -66,9 +70,43 @@ test('e2e: cost accounts for at least the xray tool itself', { skip: !hasRuntime
 
 test('e2e: audit scans the link-installed plugin', { skip: !hasProfile }, () => {
   const out = JSON.parse(cli('audit', '--json'));
+  assert.equal(out.schema, 'dsh-xray/audit@2');
   const self = out.plugins.find((p) => p.name === 'dsh-xray');
   if (!self) return; // not link-installed on this machine — nothing to assert
-  const ids = self.categories.map((c) => c.id);
-  assert.ok(ids.includes('shell'), 'dump collector spawns dsh — must be flagged');
-  assert.ok(ids.includes('fs'), 'collectors read files — must be flagged');
+  const ids = self.capabilities.map((c) => c.capability);
+  assert.ok(ids.includes('process.spawn'), 'dump collector spawns dsh — must be flagged');
+  assert.ok(ids.includes('filesystem.read'), 'collectors read files — must be flagged');
+  for (const c of self.capabilities) {
+    assert.ok(['high', 'medium', 'low'].includes(c.confidence), `confidence: ${c.confidence}`);
+    assert.ok(c.hits.length > 0, `${c.capability} reported with no evidence`);
+    assert.ok(
+      c.hits.every((h) => h.file && Number.isInteger(h.line) && h.line > 0 && h.text),
+      `${c.capability} hits must carry file:line and the matched text`,
+    );
+  }
+});
+
+test('e2e: verify reconciles services and tools against the declared rows', {
+  skip: !hasRuntime,
+}, () => {
+  const out = JSON.parse(cli('verify', '--json'));
+  assert.equal(out.schema, 'dsh-xray/verify@2');
+  assert.ok(out.services.checked > 0, 'a booted profile provides services');
+  assert.ok(out.tools.checked >= 0 && Array.isArray(out.tools.rows));
+  assert.ok(out.notes.length > 0, 'the static-side boundary is stated, not implied');
+});
+
+test('e2e: why walks a real tool chain to the kernel roots', { skip: !hasRuntime }, () => {
+  const snap = JSON.parse(fs.readFileSync(path.join(home, 'xray', 'runtime.json'), 'utf8'));
+  const tool = Object.keys(snap.toolOwners ?? {})[0];
+  if (!tool) return; // no attribution observed yet — nothing to assert
+  const out = JSON.parse(cli('why', tool, '--json'));
+  assert.equal(out.schema, 'dsh-xray/why@1');
+  assert.equal(out.found, true);
+  assert.equal(out.rows[0].name, tool);
+  assert.equal(out.rows[0].kind, 'tool');
+  assert.ok(
+    out.rows.some((r) => r.kind === 'plugin'),
+    'the chain names the registering plugin',
+  );
 });

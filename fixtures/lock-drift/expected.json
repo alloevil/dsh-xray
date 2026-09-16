@@ -1,0 +1,89 @@
+{
+  "schema": "dsh-xray/snapshot-diff@2",
+  "identical": false,
+  "savedAt": "2026-08-20T00:00:00Z",
+  "profile": "web",
+  "savedSchema": "dsh-xray/snapshot@2",
+  "notices": [],
+  "changes": {
+    "bundles": [
+      {
+        "name": "@deepseek-ai/dsh-web-app",
+        "change": "version",
+        "from": {
+          "version": "0.1.0-rc.6",
+          "patchHash": "bbbb2222"
+        },
+        "to": {
+          "version": "0.1.0-rc.7",
+          "patchHash": "bbbb2222"
+        }
+      }
+    ],
+    "patches": [
+      {
+        "kind": "profile-patch",
+        "change": "content",
+        "from": "cccc3333",
+        "to": "eeee4444"
+      }
+    ],
+    "packages": [
+      {
+        "name": "dsh-market",
+        "change": "added",
+        "version": "1.15.0",
+        "source": "registry",
+        "integrity": "sha256-2222bbbb2222bbbb"
+      },
+      {
+        "name": "dsh-xray",
+        "change": "integrity",
+        "from": {
+          "version": "0.11.0",
+          "source": "link",
+          "integrity": "sha256-1111aaaa1111aaaa"
+        },
+        "to": {
+          "version": "0.11.0",
+          "source": "link",
+          "integrity": "sha256-9999cccc9999cccc"
+        }
+      }
+    ],
+    "services": [
+      {
+        "name": "tools",
+        "change": "providers",
+        "from": "ToolRuntime",
+        "to": "ToolRuntimeV2"
+      },
+      {
+        "name": "webServer",
+        "change": "added",
+        "provider": "WebServer"
+      },
+      {
+        "name": "storage",
+        "change": "removed"
+      }
+    ],
+    "tools": [
+      {
+        "name": "bash",
+        "change": "added",
+        "owner": "dsh-bash"
+      },
+      {
+        "name": "xray_composition",
+        "change": "tokens",
+        "from": 120,
+        "to": 140
+      }
+    ],
+    "composed": {
+      "from": "drifting00000000",
+      "to": "drifting11111111"
+    }
+  }
+}

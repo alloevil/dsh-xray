@@ -1,0 +1,26 @@
+{
+  "schema": "dsh-xray/snapshot@2",
+  "createdAt": "2026-08-20T00:00:00Z",
+  "profile": "web",
+  "bundles": [
+    { "name": "@deepseek-ai/dsh-base", "version": "0.1.0-rc.6", "patchHash": "aaaa1111" },
+    { "name": "@deepseek-ai/dsh-web-app", "version": "0.1.0-rc.6", "patchHash": "bbbb2222" }
+  ],
+  "patches": [{ "kind": "profile-patch", "file": "<HOME>/profiles/web/cordis.patch.yml", "hash": "cccc3333" }],
+  "packages": [
+    {
+      "name": "dsh-xray",
+      "version": "0.11.0",
+      "source": "link",
+      "integrity": "sha256-1111aaaa1111aaaa",
+      "files": 42
+    }
+  ],
+  "services": [
+    { "name": "storage", "provider": "ShadowA" },
+    { "name": "tools", "provider": "ToolRuntime" }
+  ],
+  "tools": [{ "name": "xray_composition", "owner": "dsh-xray", "tokens": 120 }],
+  "composedHash": "drifting00000000",
+  "rowCount": 118
+}

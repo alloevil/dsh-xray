@@ -100,3 +100,46 @@ test('end-to-end: attribute over the fixture home', () => {
   assert.equal(repo.origin.kind, 'repository');
   assert.equal(repo.origin.layer, 'my-repo-plugin');
 });
+
+test('packageSource classifies registry, link and repository installs', () => {
+  const { packageSource } = require('../lib/collect/static.js');
+  const inNodeModules = path.join(home, 'profiles', 'test', 'node_modules', 'x');
+  assert.equal(packageSource('^1.0.0', inNodeModules, home), 'registry');
+  assert.equal(packageSource('link:/home/me/x', inNodeModules, home), 'link');
+  assert.equal(packageSource('file:../x', inNodeModules, home), 'link');
+  assert.equal(packageSource('workspace:*', inNodeModules, home), 'link');
+  // The plugin-console mechanism wins over the declaration: the directory is
+  // the fact, the spec is the hint.
+  assert.equal(packageSource('^1.0.0', path.join(home, '.dsh-plugin', 'x'), home), 'repository');
+  assert.equal(packageSource(undefined, null, home), 'registry');
+});
+
+test('packageIntegrity hashes content and ignores node_modules, .git and symlinks', () => {
+  const { packageIntegrity } = require('../lib/collect/static.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'xray-integrity-'));
+  const outside = path.join(os.tmpdir(), `xray-outside-${process.pid}.js`);
+  try {
+    fs.writeFileSync(path.join(dir, 'index.js'), 'module.exports = 1;\n');
+    const first = packageIntegrity(dir);
+    assert.match(first.integrity, /^sha256-[0-9a-f]{16}$/);
+    assert.equal(first.files, 1);
+
+    fs.mkdirSync(path.join(dir, 'node_modules', 'dep'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'node_modules', 'dep', 'index.js'), 'not this package\n');
+    fs.mkdirSync(path.join(dir, '.git'), { recursive: true });
+    fs.writeFileSync(path.join(dir, '.git', 'HEAD'), 'ref: refs/heads/main\n');
+    fs.writeFileSync(outside, 'belongs to someone else\n');
+    fs.symlinkSync(outside, path.join(dir, 'linked.js'));
+    assert.deepEqual(packageIntegrity(dir), first, 'excluded subtrees must not move the digest');
+
+    fs.writeFileSync(path.join(dir, 'index.js'), 'module.exports = 2;\n');
+    const second = packageIntegrity(dir);
+    assert.notEqual(second.integrity, first.integrity);
+    assert.equal(second.files, 1);
+
+    assert.equal(packageIntegrity(null), null, 'an unresolvable package has no digest to report');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(outside, { force: true });
+  }
+});

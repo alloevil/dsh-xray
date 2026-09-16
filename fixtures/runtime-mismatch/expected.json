@@ -57,9 +57,33 @@
     "semantics": "per-field last-writer-wins, layers applied in load order",
     "conflicts": []
   },
+  "audit": {
+    "schema": "dsh-xray/audit@2",
+    "capturedAt": "<TS>",
+    "plugins": []
+  },
   "deps": {
     "schema": "dsh-xray/deps@1",
-    "services": {},
+    "services": {
+      "alpha-api": {
+        "providers": [
+          "PluginAlpha"
+        ],
+        "consumers": []
+      },
+      "gamma-store": {
+        "providers": [
+          "PluginGamma"
+        ],
+        "consumers": []
+      },
+      "helper-bus": {
+        "providers": [
+          "ExtraHelper"
+        ],
+        "consumers": []
+      }
+    },
     "cascade": {},
     "unsatisfied": []
   },
@@ -76,14 +100,96 @@
   },
   "cost": {
     "schema": "dsh-xray/cost@1",
-    "totalTokens": 0,
-    "toolTokens": 0,
+    "totalTokens": 200,
+    "toolTokens": 200,
     "sectionTokens": 0,
-    "toolCount": 0,
+    "toolCount": 4,
     "sectionCount": 0,
-    "tools": [],
+    "tools": [
+      {
+        "name": "alpha_tool",
+        "tokens": 80,
+        "share": 40,
+        "owner": "PluginAlpha"
+      },
+      {
+        "name": "gamma_tool",
+        "tokens": 60,
+        "share": 30,
+        "owner": "PluginGamma"
+      },
+      {
+        "name": "helper_tool",
+        "tokens": 40,
+        "share": 20,
+        "owner": "ExtraHelper"
+      },
+      {
+        "name": "orphan_tool",
+        "tokens": 20,
+        "share": 10,
+        "owner": null
+      }
+    ],
     "sections": [],
-    "owners": [],
+    "owners": [
+      {
+        "plugin": "PluginAlpha",
+        "tokens": 80,
+        "sections": 0,
+        "tools": 1,
+        "entries": [
+          {
+            "kind": "tool",
+            "name": "alpha_tool",
+            "tokens": 80
+          }
+        ],
+        "share": 40
+      },
+      {
+        "plugin": "PluginGamma",
+        "tokens": 60,
+        "sections": 0,
+        "tools": 1,
+        "entries": [
+          {
+            "kind": "tool",
+            "name": "gamma_tool",
+            "tokens": 60
+          }
+        ],
+        "share": 30
+      },
+      {
+        "plugin": "ExtraHelper",
+        "tokens": 40,
+        "sections": 0,
+        "tools": 1,
+        "entries": [
+          {
+            "kind": "tool",
+            "name": "helper_tool",
+            "tokens": 40
+          }
+        ],
+        "share": 20
+      },
+      {
+        "plugin": "unattributed",
+        "tokens": 20,
+        "sections": 0,
+        "tools": 1,
+        "entries": [
+          {
+            "kind": "tool",
+            "name": "orphan_tool",
+            "tokens": 20
+          }
+        ],
+        "share": 10
+      }
+    ],
     "promptObservedAt": null,
     "capturedAt": "2026-01-01T00:00:00.000Z"
   },
@@ -105,8 +211,88 @@
     "sessions": [],
     "capturedAt": "2026-01-01T00:00:00.000Z"
   },
+  "why": {
+    "alpha_tool": {
+      "schema": "dsh-xray/why@1",
+      "query": "alpha_tool",
+      "found": true,
+      "tool": {
+        "name": "alpha_tool",
+        "owner": "PluginAlpha",
+        "tokens": 80
+      },
+      "rows": [
+        {
+          "depth": 0,
+          "kind": "tool",
+          "name": "alpha_tool",
+          "owner": "PluginAlpha",
+          "tokens": 80
+        },
+        {
+          "depth": 1,
+          "kind": "plugin",
+          "name": "PluginAlpha",
+          "injects": [],
+          "root": true
+        }
+      ]
+    },
+    "gamma_tool": {
+      "schema": "dsh-xray/why@1",
+      "query": "gamma_tool",
+      "found": true,
+      "tool": {
+        "name": "gamma_tool",
+        "owner": "PluginGamma",
+        "tokens": 60
+      },
+      "rows": [
+        {
+          "depth": 0,
+          "kind": "tool",
+          "name": "gamma_tool",
+          "owner": "PluginGamma",
+          "tokens": 60
+        },
+        {
+          "depth": 1,
+          "kind": "plugin",
+          "name": "PluginGamma",
+          "injects": [],
+          "root": true
+        }
+      ]
+    },
+    "helper_tool": {
+      "schema": "dsh-xray/why@1",
+      "query": "helper_tool",
+      "found": true,
+      "tool": {
+        "name": "helper_tool",
+        "owner": "ExtraHelper",
+        "tokens": 40
+      },
+      "rows": [
+        {
+          "depth": 0,
+          "kind": "tool",
+          "name": "helper_tool",
+          "owner": "ExtraHelper",
+          "tokens": 40
+        },
+        {
+          "depth": 1,
+          "kind": "plugin",
+          "name": "ExtraHelper",
+          "injects": [],
+          "root": true
+        }
+      ]
+    }
+  },
   "verify": {
-    "schema": "dsh-xray/verify@1",
+    "schema": "dsh-xray/verify@2",
     "capturedAt": "2026-01-01T00:00:00.000Z",
     "stale": null,
     "matched": [
@@ -132,6 +318,94 @@
     "undeclaredRuntime": [
       "ExtraHelper"
     ],
-    "unsatisfied": []
+    "unsatisfied": [],
+    "services": {
+      "checked": 3,
+      "rows": [
+        {
+          "name": "alpha-api",
+          "provider": "PluginAlpha",
+          "row": {
+            "id": "alpha",
+            "name": "plugin-alpha",
+            "disabled": false
+          }
+        },
+        {
+          "name": "gamma-store",
+          "provider": "PluginGamma",
+          "row": {
+            "id": "gamma",
+            "name": "plugin-gamma",
+            "disabled": true
+          }
+        },
+        {
+          "name": "helper-bus",
+          "provider": "ExtraHelper",
+          "row": null
+        }
+      ],
+      "providerUndeclared": [
+        {
+          "name": "helper-bus",
+          "provider": "ExtraHelper"
+        }
+      ],
+      "providerDisabled": [
+        {
+          "name": "gamma-store",
+          "provider": "PluginGamma",
+          "id": "gamma"
+        }
+      ]
+    },
+    "tools": {
+      "checked": 3,
+      "rows": [
+        {
+          "name": "alpha_tool",
+          "owner": "PluginAlpha",
+          "row": {
+            "id": "alpha",
+            "name": "plugin-alpha",
+            "disabled": false
+          }
+        },
+        {
+          "name": "gamma_tool",
+          "owner": "PluginGamma",
+          "row": {
+            "id": "gamma",
+            "name": "plugin-gamma",
+            "disabled": true
+          }
+        },
+        {
+          "name": "helper_tool",
+          "owner": "ExtraHelper",
+          "row": null
+        }
+      ],
+      "ownerUndeclared": [
+        {
+          "name": "helper_tool",
+          "owner": "ExtraHelper"
+        }
+      ],
+      "ownerDisabled": [
+        {
+          "name": "gamma_tool",
+          "owner": "PluginGamma",
+          "id": "gamma"
+        }
+      ],
+      "unattributed": [
+        "orphan_tool"
+      ]
+    },
+    "notes": [
+      "static layers declare id/name/config/disabled only: neither bundle patches nor package.json#dsh carry provide or tool lists, so services and tools are reconciled against the declared row set, not against a declaration"
+    ]
   }
 }

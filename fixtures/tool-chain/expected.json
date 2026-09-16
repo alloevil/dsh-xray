@@ -1,0 +1,219 @@
+{
+  "deps": {
+    "schema": "dsh-xray/deps@1",
+    "services": {
+      "tools": {
+        "providers": [
+          "ToolRuntime",
+          "ShadowTools"
+        ],
+        "consumers": [
+          "AppShell"
+        ]
+      },
+      "webServer": {
+        "providers": [
+          "WebServer"
+        ],
+        "consumers": [
+          "AppShell"
+        ]
+      },
+      "config": {
+        "providers": [
+          "ConfigService"
+        ],
+        "consumers": [
+          "WebServer"
+        ]
+      },
+      "shell": {
+        "providers": [
+          "AppShell"
+        ],
+        "consumers": []
+      }
+    },
+    "cascade": {
+      "ToolRuntime": [
+        "AppShell"
+      ],
+      "ShadowTools": [
+        "AppShell"
+      ],
+      "WebServer": [
+        "AppShell"
+      ],
+      "ConfigService": [
+        "AppShell",
+        "WebServer"
+      ]
+    },
+    "unsatisfied": []
+  },
+  "health": {
+    "schema": "dsh-xray/health@1",
+    "healthy": [
+      "AppShell",
+      "ToolRuntime",
+      "ShadowTools",
+      "WebServer",
+      "ConfigService"
+    ],
+    "waiting": [],
+    "unhealthy": [],
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "cost": {
+    "schema": "dsh-xray/cost@1",
+    "totalTokens": 120,
+    "toolTokens": 120,
+    "sectionTokens": 0,
+    "toolCount": 1,
+    "sectionCount": 0,
+    "tools": [
+      {
+        "name": "xray_composition",
+        "tokens": 120,
+        "share": 100,
+        "owner": "AppShell"
+      }
+    ],
+    "sections": [],
+    "owners": [
+      {
+        "plugin": "AppShell",
+        "tokens": 120,
+        "sections": 0,
+        "tools": 1,
+        "entries": [
+          {
+            "kind": "tool",
+            "name": "xray_composition",
+            "tokens": 120
+          }
+        ],
+        "share": 100
+      }
+    ],
+    "promptObservedAt": null,
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "shadow": {
+    "schema": "dsh-xray/shadow@1",
+    "services": [
+      {
+        "service": "tools",
+        "providers": [
+          "ToolRuntime",
+          "ShadowTools"
+        ]
+      }
+    ],
+    "registrars": [
+      {
+        "plugin": "AppShell",
+        "registrations": 1
+      }
+    ]
+  },
+  "skills": {
+    "schema": "dsh-xray/skills@1",
+    "available": false,
+    "skills": [],
+    "totals": null,
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "requests": {
+    "schema": "dsh-xray/requests@1",
+    "available": false,
+    "sessions": [],
+    "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "why": {
+    "xray_composition": {
+      "schema": "dsh-xray/why@1",
+      "query": "xray_composition",
+      "found": true,
+      "tool": {
+        "name": "xray_composition",
+        "owner": "AppShell",
+        "tokens": 120
+      },
+      "rows": [
+        {
+          "depth": 0,
+          "kind": "tool",
+          "name": "xray_composition",
+          "owner": "AppShell",
+          "tokens": 120
+        },
+        {
+          "depth": 1,
+          "kind": "plugin",
+          "name": "AppShell",
+          "injects": [
+            "tools",
+            "webServer"
+          ],
+          "root": false
+        },
+        {
+          "depth": 2,
+          "kind": "service",
+          "name": "tools",
+          "providers": [
+            "ToolRuntime",
+            "ShadowTools"
+          ]
+        },
+        {
+          "depth": 3,
+          "kind": "plugin",
+          "name": "ToolRuntime",
+          "injects": [],
+          "root": true
+        },
+        {
+          "depth": 3,
+          "kind": "plugin",
+          "name": "ShadowTools",
+          "injects": [],
+          "root": true
+        },
+        {
+          "depth": 2,
+          "kind": "service",
+          "name": "webServer",
+          "providers": [
+            "WebServer"
+          ]
+        },
+        {
+          "depth": 3,
+          "kind": "plugin",
+          "name": "WebServer",
+          "injects": [
+            "config"
+          ],
+          "root": false
+        },
+        {
+          "depth": 4,
+          "kind": "service",
+          "name": "config",
+          "providers": [
+            "ConfigService"
+          ]
+        },
+        {
+          "depth": 5,
+          "kind": "plugin",
+          "name": "ConfigService",
+          "injects": [],
+          "root": true
+        }
+      ]
+    }
+  }
+}

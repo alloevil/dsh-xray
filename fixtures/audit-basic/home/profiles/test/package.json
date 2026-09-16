@@ -1,0 +1,7 @@
+{
+  "name": "dsh-profile-test",
+  "dependencies": {
+    "@fixture/risky-plugin": "1.0.0"
+  },
+  "dsh": { "profile": { "bundles": [] } }
+}

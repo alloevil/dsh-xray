@@ -1,0 +1,146 @@
+{
+  "attribute": {
+    "schema": "dsh-xray/attribute@1",
+    "rows": [
+      {
+        "id": "risky",
+        "name": "risky-plugin",
+        "disabled": false,
+        "origin": {
+          "layer": "profile-patch",
+          "kind": "profile-patch",
+          "file": "<HOME>/profiles/test/cordis.patch.yml",
+          "line": 1
+        },
+        "overrides": []
+      },
+      {
+        "id": "ghost",
+        "name": "ghost-plugin",
+        "disabled": true,
+        "origin": {
+          "layer": "profile-patch",
+          "kind": "profile-patch",
+          "file": "<HOME>/profiles/test/cordis.patch.yml",
+          "line": 1
+        },
+        "overrides": [
+          {
+            "layer": "profile-patch",
+            "kind": "profile-patch",
+            "file": "<HOME>/profiles/test/cordis.patch.yml",
+            "line": 6,
+            "fields": [
+              "disabled"
+            ]
+          }
+        ]
+      }
+    ],
+    "orphans": [],
+    "warnings": []
+  },
+  "conflicts": {
+    "schema": "dsh-xray/conflicts@1",
+    "semantics": "per-field last-writer-wins, layers applied in load order",
+    "conflicts": []
+  },
+  "audit": {
+    "schema": "dsh-xray/audit@2",
+    "capturedAt": "<TS>",
+    "plugins": [
+      {
+        "name": "@fixture/risky-plugin",
+        "version": "1.0.0",
+        "scannedFiles": 2,
+        "capabilities": [
+          {
+            "capability": "process.spawn",
+            "label": "subprocess / shell",
+            "confidence": "high",
+            "hits": [
+              {
+                "file": "src/index.js",
+                "line": 3,
+                "text": "const { execFileSync } = require('node:child_process');"
+              },
+              {
+                "file": "src/index.js",
+                "line": 8,
+                "text": "execFileSync('git', ['status']);"
+              }
+            ]
+          },
+          {
+            "capability": "network.outbound",
+            "label": "network egress",
+            "confidence": "medium",
+            "hits": [
+              {
+                "file": "src/index.js",
+                "line": 10,
+                "text": "await fetch('https://example.invalid/collect', { method: 'POST' });"
+              }
+            ]
+          },
+          {
+            "capability": "filesystem.read",
+            "label": "filesystem read",
+            "confidence": "high",
+            "hits": [
+              {
+                "file": "src/index.js",
+                "line": 4,
+                "text": "const fs = require('node:fs');"
+              },
+              {
+                "file": "src/store.js",
+                "line": 3,
+                "text": "import fs from 'node:fs';"
+              },
+              {
+                "file": "src/store.js",
+                "line": 6,
+                "text": "return fs.readdirSync(dir).map((name) => name.toUpperCase());"
+              }
+            ]
+          },
+          {
+            "capability": "filesystem.write",
+            "label": "filesystem write",
+            "confidence": "high",
+            "hits": [
+              {
+                "file": "src/index.js",
+                "line": 4,
+                "text": "const fs = require('node:fs');"
+              },
+              {
+                "file": "src/index.js",
+                "line": 9,
+                "text": "fs.writeFileSync('/tmp/fixture-state.json', JSON.stringify({ token }));"
+              },
+              {
+                "file": "src/store.js",
+                "line": 3,
+                "text": "import fs from 'node:fs';"
+              }
+            ]
+          },
+          {
+            "capability": "env.read",
+            "label": "environment variables",
+            "confidence": "low",
+            "hits": [
+              {
+                "file": "src/index.js",
+                "line": 7,
+                "text": "const token = process.env.FIXTURE_TOKEN;"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -130,9 +130,16 @@ function cmdDiff(args) {
 function cmdSnapshot(args) {
   const data = collectStatic(args.profile);
   const { dump } = tryDump(args.profile);
-  const current = model.snapshot(data, dump);
+  const snap = tryRuntimeSnapshot();
+  const current = model.snapshot(data, dump, snap);
   const againstFile = args.against;
-  if (!againstFile) return console.log(JSON.stringify(current, null, 2));
+  if (!againstFile) {
+    if (!snap)
+      console.error(
+        '! no runtime snapshot found: services/tools are recorded as null (mount the plugin and open a session to include them)',
+      );
+    return console.log(JSON.stringify(current, null, 2));
+  }
 
   const fs = require('node:fs');
   const { compareSnapshots } = require('../lib/compare.js');
@@ -141,7 +148,11 @@ function cmdSnapshot(args) {
   if (args.json) return console.log(JSON.stringify(result, null, 2));
 
   if (result.identical) {
-    return console.log(`composition identical to snapshot from ${result.savedAt}`);
+    console.log(`composition identical to snapshot from ${result.savedAt}`);
+    // Still say what the saved lock could not answer for: "identical" over an
+    // unchecked field is exactly the claim this command exists to refuse.
+    for (const notice of result.notices) console.log(`  ! ${notice}`);
+    return;
   }
   console.log(`composition drifted from snapshot (${result.savedAt}):`);
   for (const b of result.changes.bundles) {
@@ -158,15 +169,38 @@ function cmdSnapshot(args) {
     );
   }
   for (const p of result.changes.packages) {
-    if (p.change === 'added') console.log(`  package + ${p.name}@${p.version}`);
+    if (p.change === 'added')
+      console.log(
+        `  package + ${p.name}@${p.version} (${p.source}, ${p.integrity ?? 'no integrity'})`,
+      );
     else if (p.change === 'removed') console.log(`  package - ${p.name}`);
-    else console.log(`  package ~ ${p.name}: ${p.from} → ${p.to}`);
+    else if (p.change === 'version')
+      console.log(`  package ~ ${p.name}: ${p.from.version} → ${p.to.version}`);
+    else if (p.change === 'source')
+      console.log(`  package ~ ${p.name}: source ${p.from.source} → ${p.to.source}`);
+    else console.log(`  package ~ ${p.name}: integrity ${p.from.integrity} → ${p.to.integrity}`);
+  }
+  for (const s of result.changes.services) {
+    if (s.change === 'added') console.log(`  service + ${s.name} ← ${s.provider}`);
+    else if (s.change === 'removed') console.log(`  service - ${s.name}`);
+    else console.log(`  service ~ ${s.name}: ${s.from} → ${s.to}`);
+  }
+  for (const t of result.changes.tools) {
+    if (t.change === 'added')
+      console.log(`  tool + ${t.name} (owner ${t.owner ?? 'unattributed'})`);
+    else if (t.change === 'removed') console.log(`  tool - ${t.name}`);
+    else if (t.change === 'owner')
+      console.log(
+        `  tool ~ ${t.name}: owner ${t.from ?? 'unattributed'} → ${t.to ?? 'unattributed'}`,
+      );
+    else console.log(`  tool ~ ${t.name}: ~${t.from} tokens → ~${t.to}`);
   }
   if (result.changes.composed) {
     console.log(
       `  composed tree hash: ${result.changes.composed.from} → ${result.changes.composed.to}`,
     );
   }
+  for (const notice of result.notices) console.log(`  ! ${notice}`);
   process.exitCode = 1;
 }
 
@@ -181,6 +215,16 @@ function readRuntimeSnapshot() {
     );
   }
   return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+/** Same read, but a missing or unparsable snapshot is a fact to record (the
+ * lockfile writes null), not a reason to fail a static command. */
+function tryRuntimeSnapshot() {
+  try {
+    return readRuntimeSnapshot();
+  } catch {
+    return null;
+  }
 }
 
 function panelHint(args) {
@@ -321,7 +365,99 @@ function cmdVerify(args) {
     console.log(`! ${result.unsatisfied.length} unsatisfied inject(s):`);
     for (const u of result.unsatisfied) console.log(`  ${u.plugin} wants ${u.service}`);
   }
+  // Service and tool reconciliation. Only three classes exist, and the
+  // runtime-only one is the norm on a healthy boot (kernel plugins register
+  // under their callback names), so it is summarised; the declared-disabled
+  // class is the one worth reading row by row.
+  const svc = result.services;
+  console.log(
+    `\n✓ services reconciled against the declared rows: ${svc.checked} (${svc.checked - svc.providerUndeclared.length - svc.providerDisabled.length} declared, ${svc.providerDisabled.length} declared-disabled, ${svc.providerUndeclared.length} runtime-only)`,
+  );
+  for (const s of svc.providerDisabled) {
+    console.log(`  ✗ ${s.name}: provider ${s.provider} is declared disabled (row ${s.id})`);
+  }
+  if (svc.providerUndeclared.length) {
+    const names = [...new Set(svc.providerUndeclared.map((s) => s.provider))];
+    console.log(
+      `  + runtime-only providers (${svc.providerUndeclared.length} service(s) from ${names.length} plugin(s)): ${names.slice(0, 6).join(', ')}${names.length > 6 ? ', …' : ''}`,
+    );
+  }
+  const tools = result.tools;
+  console.log(
+    `\n✓ tool registrations reconciled against the declared rows: ${tools.checked} (${tools.checked - tools.ownerUndeclared.length - tools.ownerDisabled.length} declared, ${tools.ownerDisabled.length} declared-disabled, ${tools.ownerUndeclared.length} runtime-only)`,
+  );
+  const disabledOwners = new Map();
+  for (const t of tools.ownerDisabled) {
+    disabledOwners.set(t.owner, [...(disabledOwners.get(t.owner) ?? []), t.name]);
+  }
+  for (const [owner, names] of disabledOwners) {
+    console.log(
+      `  ✗ ${names.length} tool(s) from ${owner}, whose row is declared disabled (row ${tools.ownerDisabled.find((t) => t.owner === owner).id})`,
+    );
+  }
+  if (tools.ownerUndeclared.length) {
+    console.log(
+      `  + runtime-only owners (${tools.ownerUndeclared.length}): ${[...new Set(tools.ownerUndeclared.map((t) => t.owner))].slice(0, 6).join(', ')}`,
+    );
+  }
+  if (tools.unattributed.length) {
+    console.log(
+      `  ? ${tools.unattributed.length} tool(s) with no attribution entry (never guessed): ${tools.unattributed.slice(0, 6).join(', ')}${tools.unattributed.length > 6 ? ', …' : ''}`,
+    );
+  }
+  for (const note of result.notes) console.log(`\n# ${note}`);
+  // Exit 1 stays where it was: a declared plugin that never mounted, or a
+  // disabled one that is running. The service/tool classes above are
+  // scope-dependent (a disabled profile row can be mounted in an agent scope,
+  // which is exactly how the harness ships its tool plugins) — reported, not
+  // failed, matching how runtime-only plugins are already treated.
   if (result.declaredNotRunning.length || result.disabledButRunning.length) process.exitCode = 1;
+  panelHint(args);
+}
+
+function cmdWhy(args) {
+  const snap = readRuntimeSnapshot();
+  const name = args._[1];
+  if (!name) {
+    console.error('usage: dsh-xray why <tool> [--profile web] [--json]');
+    process.exitCode = 2;
+    return;
+  }
+  const result = model.whyTool(snap, name);
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+  if (!result.found) {
+    console.log(`no tool named "${name}" is attributed in the runtime snapshot`);
+    const known = Object.keys(snap.toolOwners ?? {}).sort();
+    console.log(
+      known.length
+        ? `attributed tools (${known.length}): ${known.join(', ')}`
+        : 'no tool attribution yet — send one agent request first, the table is built from observed registrations',
+    );
+    process.exitCode = 1;
+    return;
+  }
+  for (const row of result.rows) {
+    const indent = '  '.repeat(row.depth);
+    if (row.kind === 'tool') {
+      console.log(
+        `${indent}${row.name}${row.tokens != null ? ` (~${row.tokens} tokens in every request)` : ''}`,
+      );
+    } else if (row.kind === 'plugin') {
+      const note = row.root
+        ? ' — injects nothing (bundle root)'
+        : row.revisited
+          ? ' — already expanded above'
+          : row.unresolved
+            ? ' — not present in this snapshot'
+            : '';
+      console.log(`${indent}registered by ${row.name}${note}`);
+      if (row.injects?.length) console.log(`${indent}  injects ${row.injects.join(', ')}`);
+    } else {
+      console.log(
+        `${indent}provided by ${row.providers.join(', ') || '(nobody — this plugin waits forever)'}`,
+      );
+    }
+  }
   panelHint(args);
 }
 
@@ -337,11 +473,10 @@ function cmdAudit(args) {
   }
   for (const p of result.plugins) {
     console.log(`${p.name}@${p.version} (${p.scannedFiles} file(s) scanned)`);
-    if (!p.categories.length) console.log('  no sensitive touchpoints detected');
-    for (const c of p.categories) {
-      console.log(
-        `  ${c.label}: ${c.files.slice(0, 3).join(', ')}${c.files.length > 3 ? ', …' : ''}`,
-      );
+    if (!p.capabilities.length) console.log('  no sensitive touchpoints detected');
+    for (const c of p.capabilities) {
+      console.log(`\n  ${c.capability}  confidence: ${c.confidence}`);
+      for (const h of c.hits) console.log(`    ${pad(`${h.file}:${h.line}`, 32)} ${h.text}`);
     }
   }
 }
@@ -356,6 +491,7 @@ const commands = {
   cost: cmdCost,
   shadow: cmdShadow,
   verify: cmdVerify,
+  why: cmdWhy,
   audit: cmdAudit,
 };
 
@@ -376,9 +512,10 @@ Commands:
   cost        estimated context-token cost of each model-facing tool schema
   shadow      services provided by multiple plugins, and per-plugin registrations
   verify      declared (static) rows reconciled against the runtime registry
+  why         provenance chain for one tool: who registered it, who provides its injects
   audit       static scan of out-of-tree plugins for sensitive touchpoints
 
-deps/health/cost/shadow/verify need the plugin mounted: dsh plugin --profile web add dsh-xray`);
+deps/health/cost/shadow/verify/why need the plugin mounted: dsh plugin --profile web add dsh-xray`);
   process.exit(args._[0] ? 2 : 0);
 }
 try {

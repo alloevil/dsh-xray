@@ -1,0 +1,53 @@
+{
+  "schema": "dsh-xray/runtime@1",
+  "capturedAt": "2026-01-01T00:00:00.000Z",
+  "registrySize": 5,
+  "plugins": [
+    {
+      "name": "AppShell",
+      "inject": ["tools", "webServer"],
+      "provide": ["shell"],
+      "fibers": [
+        {
+          "uid": 1,
+          "state": "ACTIVE",
+          "error": null,
+          "effects": [{ "label": "tools.register(xray_composition)" }]
+        }
+      ]
+    },
+    {
+      "name": "ToolRuntime",
+      "inject": [],
+      "provide": ["tools"],
+      "fibers": [{ "uid": 2, "state": "ACTIVE", "error": null, "effects": [] }]
+    },
+    {
+      "name": "ShadowTools",
+      "inject": [],
+      "provide": ["tools"],
+      "fibers": [{ "uid": 3, "state": "ACTIVE", "error": null, "effects": [] }]
+    },
+    {
+      "name": "WebServer",
+      "inject": ["config"],
+      "provide": ["webServer"],
+      "fibers": [{ "uid": 4, "state": "ACTIVE", "error": null, "effects": [] }]
+    },
+    {
+      "name": "ConfigService",
+      "inject": [],
+      "provide": ["config"],
+      "fibers": [{ "uid": 5, "state": "ACTIVE", "error": null, "effects": [] }]
+    }
+  ],
+  "services": [
+    { "name": "tools", "provider": "ToolRuntime" },
+    { "name": "webServer", "provider": "WebServer" },
+    { "name": "config", "provider": "ConfigService" }
+  ],
+  "tools": [{ "name": "xray_composition", "description": "introspect", "tokens": 120 }],
+  "toolOwners": { "xray_composition": "AppShell" },
+  "transitions": {},
+  "promptAssembly": null
+}

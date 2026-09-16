@@ -245,5 +245,33 @@
       }
     ],
     "capturedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "why": {
+    "xray_composition": {
+      "schema": "dsh-xray/why@1",
+      "query": "xray_composition",
+      "found": true,
+      "tool": {
+        "name": "xray_composition",
+        "owner": "dsh-xray",
+        "tokens": 120
+      },
+      "rows": [
+        {
+          "depth": 0,
+          "kind": "tool",
+          "name": "xray_composition",
+          "owner": "dsh-xray",
+          "tokens": 120
+        },
+        {
+          "depth": 1,
+          "kind": "plugin",
+          "name": "dsh-xray",
+          "injects": [],
+          "unresolved": true
+        }
+      ]
+    }
   }
 }

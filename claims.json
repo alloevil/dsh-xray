@@ -2,25 +2,25 @@
   "$comment": "Executable receipts for the numbers dsh-xray publishes in prose. Every claim carries a `check`: either a command that recomputes the figure from committed data (fixtures/, bin/, lib/, tests/) or `check.manual` with the reason no command can. Run with `python3 -m verify_claims --root . run`; CI runs it via .github/workflows/claims.yml.",
   "project": "dsh-xray",
   "repository": "https://github.com/alloevil/dsh-xray",
-  "updated": "2026-09-13",
+  "updated": "2026-09-16",
   "claims": [
     {
       "id": "cli-command-count",
-      "claim": "The CLI dispatches ten commands — attribute, conflicts, diff, snapshot, deps, health, cost, shadow, verify, audit.",
-      "value": "10",
+      "claim": "The CLI dispatches eleven commands — attribute, conflicts, diff, snapshot, deps, health, cost, shadow, verify, why, audit.",
+      "value": "11",
       "metric": "entries in the `commands` dispatch table of bin/xray.js",
-      "method": "The table maps ten names to their cmd* functions, and the same ten appear in the README's CLI block and in the CLI's own usage banner. `deps`, `health`, `cost`, `shadow` and `verify` need the plugin mounted (they read the runtime snapshot); the other five run statically.",
+      "method": "The table maps eleven names to their cmd* functions, and the same eleven appear in the README's CLI block, the Chinese CLI block, and the CLI's own usage banner. `deps`, `health`, `cost`, `shadow`, `verify` and `why` need the plugin mounted (they read the runtime snapshot); the other five run statically.",
       "repro": "node -e \"const s=require('fs').readFileSync('bin/xray.js','utf8');const t=s.split('const commands = {')[1].split('};')[0];const k=t.match(/(\\w+):\\s*cmd/g).map((m)=>m.split(':')[0]);console.log(k.length, k.join(','))\"",
-      "evidence": "bin/xray.js (dispatch table); README.md:82-92",
-      "verified": "2026-09-13",
+      "evidence": "bin/xray.js (dispatch table); README.md (CLI block); docs/README.zh.md (CLI block)",
+      "verified": "2026-09-16",
       "check": {
         "cmd": "node -e \"const s=require('fs').readFileSync('bin/xray.js','utf8');const t=s.split('const commands = {')[1].split('};')[0];const k=t.match(/(\\w+):\\s*cmd/g).map((m)=>m.split(':')[0]);console.log(k.length, k.join(','))\"",
         "expect": {
-          "equals": "10 attribute,conflicts,diff,snapshot,deps,health,cost,shadow,verify,audit"
+          "equals": "11 attribute,conflicts,diff,snapshot,deps,health,cost,shadow,verify,why,audit"
         },
         "timeout": 60
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     },
     {
       "id": "panel-hint-address",
@@ -30,7 +30,7 @@
       "method": "`deps` ends with panelHint(), which prints the hint unless --json is set. The check copies the committed fixtures/runtime-basic snapshot into a throwaway $DSH_HOME so the command really runs, then reads the hint line. The 2026-09-12 correction recorded in CHANGELOG.md's Unreleased entry replaced `localhost:3080` with this address in the READMEs and in the CLI hint; the upstream half of the statement is `panel-default-bind`.",
       "repro": "D=$(mktemp -d) && mkdir -p $D/xray && cp fixtures/runtime-basic/runtime.json $D/xray/runtime.json && DSH_HOME=$D node bin/xray.js deps | grep '^live panel:'",
       "evidence": "bin/xray.js:187; README.md:216; docs/README.zh.md:215",
-      "verified": "2026-09-13",
+      "verified": "2026-09-16",
       "check": {
         "cmd": "D=$(mktemp -d) && mkdir -p $D/xray && cp fixtures/runtime-basic/runtime.json $D/xray/runtime.json && DSH_HOME=$D node bin/xray.js deps | grep '^live panel:'",
         "expect": {
@@ -38,7 +38,7 @@
         },
         "timeout": 60
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     },
     {
       "id": "panel-default-bind",
@@ -48,11 +48,11 @@
       "method": "Upstream packages/bundle/web-app/cordis.patch.yml sets `host: !!js ctx.webStartup.host ?? '127.0.0.1'` and `port: !!js ctx.webStartup.port ?? 3080`. The 2026-09-12 docs correction (recorded in CHANGELOG.md's Unreleased entry) changed the READMEs and the CLI hint to this address on that source.",
       "repro": "curl -s https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/master/packages/bundle/web-app/cordis.patch.yml | grep -n webStartup",
       "evidence": "https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/master/packages/bundle/web-app/cordis.patch.yml",
-      "verified": "2026-09-13",
+      "verified": "2026-09-16",
       "check": {
         "manual": "The default bind lives in the upstream deepseek-harness web-app bundle, not in this repository: no committed file here carries the host/port defaults, and reading them needs network access to upstream, which the checks must not require. Corroborated on this machine by the installed bundle (~/.dsh/profiles/node_modules/@deepseek-ai/dsh-web-app/cordis.patch.yml). The half the repository can recompute — that its own CLI prints exactly this address — is checked by `panel-hint-address`."
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     },
     {
       "id": "runtime-fixture-cascade",
@@ -62,7 +62,7 @@
       "method": "fixtures/runtime-basic/runtime.json is the repo's committed runtime snapshot; both READMEs cite its pinned output as the synthetic contrast to the illustrative `Loader → 5` capture. The check re-derives the row with lib/model.js serviceGraph() instead of reading the pinned line.",
       "repro": "node -e \"const m=require('./lib/model.js');const g=m.serviceGraph(require('./fixtures/runtime-basic/runtime.json'));for(const [p,a] of Object.entries(g.cascade))console.log(p+' → '+a.length+' plugin(s): '+a.join(', '))\"",
       "evidence": "fixtures/runtime-basic/runtime.json + expected.json; README.md:136; docs/README.zh.md:135",
-      "verified": "2026-09-13",
+      "verified": "2026-09-16",
       "check": {
         "cmd": "node -e \"const m=require('./lib/model.js');const g=m.serviceGraph(require('./fixtures/runtime-basic/runtime.json'));for(const [p,a] of Object.entries(g.cascade))console.log(p+' → '+a.length+' plugin(s): '+a.join(', '))\"",
         "expect": {
@@ -70,7 +70,7 @@
         },
         "timeout": 60
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     },
     {
       "id": "hero-ledger-figures",
@@ -80,7 +80,7 @@
       "method": "The hero caption states the token-ledger panel is measured on the committed fixtures/runtime-basic snapshot, and hero.svg's <desc> lists the same four cells plus the total. expected.json is the pinned output that tests/golden.spec.js reproduces; the check prints the four cells and the total from it.",
       "repro": "node -e \"const r=require('./fixtures/runtime-basic/expected.json').requests.sessions[0].requests[0];console.log(r.system, r.toolSchemas, r.history, r.toolResults, r.total)\"",
       "evidence": "fixtures/runtime-basic/expected.json (requests); assets/readme/hero.svg <desc>; README.md:5",
-      "verified": "2026-09-13",
+      "verified": "2026-09-16",
       "check": {
         "cmd": "node -e \"const r=require('./fixtures/runtime-basic/expected.json').requests.sessions[0].requests[0];console.log(r.system, r.toolSchemas, r.history, r.toolResults, r.total)\"",
         "expect": {
@@ -88,7 +88,7 @@
         },
         "timeout": 60
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     },
     {
       "id": "token-estimate-four-chars",
@@ -98,7 +98,7 @@
       "method": "The README's Analysis-modes table says token counts are estimates (~4 chars/token) unless the entry text is opened and counted, and the entry payload reports the estimator as `~4 chars/token`. The check feeds 400 characters to the real estimator and prints its token count plus the implied chars-per-token.",
       "repro": "node -e \"const {estimateTokens}=require('./lib/collect/runtime.js');const c=400;const t=estimateTokens('x'.repeat(c));console.log(t, c/t)\"",
       "evidence": "lib/collect/runtime.js:58-61; README.md:186; docs/README.zh.md:185",
-      "verified": "2026-09-13",
+      "verified": "2026-09-16",
       "check": {
         "cmd": "node -e \"const {estimateTokens}=require('./lib/collect/runtime.js');const c=400;const t=estimateTokens('x'.repeat(c));console.log(t, c/t)\"",
         "expect": {
@@ -106,29 +106,29 @@
         },
         "timeout": 60
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     },
     {
       "id": "test-suite-split",
-      "claim": "The suite is 62 unit tests plus 8 end-to-end tests that drive a real dsh install and skip cleanly when none is present.",
-      "value": "62 unit + 8 e2e",
+      "claim": "The suite is 88 unit tests plus 10 end-to-end tests that drive a real dsh install and skip cleanly when none is present.",
+      "value": "88 unit + 10 e2e",
       "metric": "tests reported by the runner for the unit specs (the e2e file needs a live dsh)",
-      "method": "node --test over every spec except e2e.spec.js; the runner's own TAP summary is asserted on the discovered count and on zero failures, both of which hold with and without a dsh install",
+      "method": "node --test over every spec except e2e.spec.js; the runner's own TAP summary is asserted on the discovered count and on zero failures. The discovered count is machine-independent: the tests that need a live install skip instead of dropping out",
       "repro": "node --test $(ls tests/*.spec.js | grep -v e2e.spec.js)",
-      "evidence": "docs/discussion-post-draft.md:65; package.json (scripts.test); CHANGELOG.md (Unreleased gate line)",
-      "verified": "2026-09-13",
+      "evidence": "package.json (scripts.test); tests/ (the unit specs); CHANGELOG.md (0.12.0)",
+      "verified": "2026-09-16",
       "check": {
         "cmd": "node --test $(ls tests/*.spec.js | grep -v e2e.spec.js) 2>&1 | sed -n 's/^# \\(tests\\|pass\\|fail\\) /\\1=/p' | tr '\\n' ' '",
         "expect": {
           "contains": [
-            "tests=62 ",
+            "tests=88 ",
             "fail=0 "
           ]
         },
         "timeout": 120,
-        "note": "asserts the discovered count and zero failures; the pass count varies (62 with a live dsh, 59 without — three unit tests skip too), so it is not asserted"
+        "note": "asserts the discovered count and zero failures; three unit tests skip on a machine without a dsh install, so the pass count is lower there and is not asserted"
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     },
     {
       "id": "deps-cascade-sample",
@@ -138,11 +138,11 @@
       "method": "The block carries its own provenance note, and neither AgentPresets nor TimerService appears in any committed fixture. The sample is published in both READMEs' feature tables and in the hero's disable-cascade panel.",
       "repro": "grep -n -A2 'npx dsh-xray deps' README.md",
       "evidence": "README.md:128-136; docs/README.zh.md:128-135; assets/readme/hero.svg <desc>",
-      "verified": "2026-09-13",
+      "verified": "2026-09-16",
       "check": {
         "manual": "No committed fixture reproduces these counts, and the README labels the block as illustrative: \"Illustrative capture from the author's `web` profile (revision unrecorded) — no committed fixture produces it, and the counts drift as plugins are added; this repo's runtime fixtures are synthetic (e.g. `fixtures/runtime-basic` pins `ToolRuntime → 1 plugin(s): AgentLoop`).\" The hero caption repeats it: \"the disable-cascade panel is an illustrative capture from an author profile that no committed fixture reproduces\". `grep -rIl -E 'AgentPresets|TimerService' fixtures lib bin tests` finds nothing, so there is no input to feed a check. The reproducible counterpart of this panel is `runtime-fixture-cascade`."
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     },
     {
       "id": "demo-transcript-cost-figures",
@@ -152,11 +152,11 @@
       "method": "The transcript is docs/demo.svg, reproduced in docs/discussion-post-draft.md; both READMEs caption it and the SVG carries a <desc> saying the figures are not reproducible from the synthetic fixtures. The same capture's `hmr ← patched by dsh-web-app [disabled]` row is real for the @deepseek-ai/dsh-web-app 0.1.0-rc.6 line but records no harness revision.",
       "repro": "sed -n '1,3p;7,12p' docs/demo.svg",
       "evidence": "docs/demo.svg:3,7-12; README.md:97; docs/README.zh.md:96; docs/discussion-post-draft.md:26-33",
-      "verified": "2026-09-13",
+      "verified": "2026-09-16",
       "check": {
         "manual": "The figures come from an author-machine capture, not from committed data, and both READMEs say so: \"The demo transcript is an illustrative capture from an author's `web` profile (revision unrecorded) — its figures are not reproducible from this repo and drift as the profile gains plugins; the committed fixtures and their pinned outputs live in `fixtures/` and `tests/golden.spec.js`.\" The transcript itself is captioned the same way in the draft: \"以下输出是作者本机 profile 的示意 capture(未记录 harness revision,数字未随仓库提供)\", and demo.svg's <desc> adds: \"The figures are not reproducible from this repository's synthetic fixtures … The capture records no harness revision or date.\" A command cannot recompute them. The caption-quoted `~184 tokens` entry ruler is part of the same capture; the fixture-backed cost figures are checked by `hero-ledger-figures`."
       },
-      "as_of": "2026-09-13"
+      "as_of": "2026-09-16"
     }
   ]
 }
