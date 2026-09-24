@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { replayLayers, attribute, conflicts, diff } = require('../lib/model.js');
+const { replayLayers, attribute, conflicts, diff, contextSlo, impactAssessment } = require('../lib/model.js');
 const { parseDump } = require('../lib/collect/dump.js');
 
 const layer = (kind, name, entries) => ({ kind, name, file: `/x/${name}.yml`, entries, text: '' });
@@ -94,4 +94,17 @@ test('conflict writers carry file and value; contested fields carry effective', 
   const last = field.writers[field.writers.length - 1];
   assert.equal(last.file, '/x/profile-patch.yml');
   assert.deepEqual(last.value, { x: 3 });
+});
+test('contextSlo classifies policy failures', () => {
+  const out = contextSlo({ tools:[{name:'tool-a',tokens:120}], sectionOwners:{}, toolOwners:{}, promptAssembly:null }, { thresholds:{ totalTokens:100, toolTokens:50, unattributed:0 } });
+  assert.equal(out.schema, 'dsh-xray/slo@1');
+  assert.equal(out.status, 'fail');
+  assert.ok(out.checks.some((c) => c.id === 'toolTokens' && c.status === 'fail'));
+});
+
+test('impactAssessment reports evidence and never applies changes', () => {
+  const out = impactAssessment({ plugins:[], tools:[{name:'tool-a',tokens:10}], toolOwners:{'tool-a':'plugin-a'}, services:[] }, 'plugin-a');
+  assert.equal(out.schema, 'dsh-xray/impact@1');
+  assert.deepEqual(out.ownedTools, ['tool-a']);
+  assert.match(out.recommendation, /no changes were applied/);
 });

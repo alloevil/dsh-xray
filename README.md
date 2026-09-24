@@ -158,7 +158,7 @@ Heuristic static scan of out-of-tree plugins: subprocess / shell, network egress
   <img src="./assets/section-agent.svg" width="100%" alt="Agent Tool">
 </p>
 
-Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow | skills | requests`), so an agent can answer:
+Mounted in the tree, dsh-xray registers an `xray_composition` tool (`view: summary | deps | health | cost | shadow | skills | requests | slo | graph | diff | impact`), so an agent can answer:
 
 > *"What capabilities do I have?" / "What plugin provides X?" / "Why is Y unavailable?"*
 

@@ -157,7 +157,7 @@ $ npx dsh-xray deps
   <img src="../assets/section-agent.svg" width="100%" alt="Agent 工具">
 </p>
 
-挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow | skills | requests`),agent 可以自答:
+挂载进树后,dsh-xray 注册 `xray_composition` 工具(`view: summary | deps | health | cost | shadow | skills | requests | slo | graph | diff | impact`),agent 可以自答:
 
 > *"我有哪些能力?" / "哪个插件提供 X?" / "为什么 Y 不可用?"*
 

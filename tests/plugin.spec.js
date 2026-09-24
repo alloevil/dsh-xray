@@ -143,7 +143,7 @@ test('apply() mounts, records transitions, and writes the snapshot on unload', a
   assert.ok(panelRoutes.includes('/xray/api/entry'), 'entry inspection route mounted');
   assert.ok(panelRoutes.includes('/xray/api/skills'), 'skills view route mounted');
   assert.ok(panelRoutes.includes('/xray/api/requests'), 'requests view route mounted');
-  assert.equal(panelRoutes.length, 9); // page + 7 views + entry
+  assert.equal(panelRoutes.length, 12); // page + 9 views + entry + governance endpoints
 });
 
 test('xray_composition execute returns every view from live ctx data', async (t) => {
