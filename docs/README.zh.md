@@ -92,6 +92,16 @@ npx dsh-xray why <tool>  # 单个工具的溯源链:注册它的插件、它的 
 npx dsh-xray audit       # 对 out-of-tree 插件做敏感触点静态扫描
 ```
 
+
+治理视图与命令:
+
+```sh
+npx dsh-xray slo --json                 # Context SLO:预算检查,输出 PASS/WARN/FAIL
+npx dsh-xray graph --json               # 统一 evidence graph:插件、条目、服务
+npx dsh-xray impact --plugin <name>     # 只读影响评估,不会应用任何修改
+```
+
+治理命令均为只读。`--plugin` 用于指定 `impact` 的插件;不会禁用插件、写配置或应用 patch。
 ![dsh-xray 演示](./demo.svg)
 
 *演示终端内容是作者本机 `web` profile 的示意 capture(未记录 revision),数字无法由本仓库复现,且随插件增减漂移;可复现的 fixture 及其固化输出见 `fixtures/` 与 `tests/golden.spec.js`。*

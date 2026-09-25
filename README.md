@@ -93,6 +93,16 @@ npx dsh-xray why <tool>  # provenance chain for one tool: owner plugin, its inje
 npx dsh-xray audit       # static scan of out-of-tree plugins for sensitive touchpoints
 ```
 
+Governance views and commands:
+
+```sh
+npx dsh-xray slo --json                 # Context SLO: budget checks with PASS/WARN/FAIL
+npx dsh-xray graph --json               # normalized evidence graph: plugins, entries, services
+npx dsh-xray impact --plugin <name>     # read-only observed impact; never applies changes
+```
+
+The governance commands are read-only. `--plugin` selects the plugin for `impact`; no patch, disable, or configuration change is applied.
+
 ![dsh-xray demo](./docs/demo.svg)
 
 *The demo transcript is an illustrative capture from an author's `web` profile (revision unrecorded) — its figures are not reproducible from this repo and drift as the profile gains plugins; the committed fixtures and their pinned outputs live in `fixtures/` and `tests/golden.spec.js`.*

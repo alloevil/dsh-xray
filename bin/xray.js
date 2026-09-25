@@ -13,6 +13,7 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '--profile' || a === '-p') args.profile = argv[++i];
     else if (a === '--against') args.against = argv[++i];
+    else if (a === '--plugin') args.plugin = argv[++i];
     else if (a === '--json') args.json = true;
     else args._.push(a);
   }
@@ -466,11 +467,7 @@ function cmdAudit(args) {
   const data = collectStatic(args.profile);
   const result = collectAudit(data);
   if (args.json) return console.log(JSON.stringify(result, null, 2));
-  if (!result.plugins.length) {
-    return console.log(
-      'no out-of-tree plugins installed (kernel bundles are the trusted baseline)',
-    );
-  }
+  if (!result.plugins.length) return console.log('no out-of-tree plugins installed (kernel bundles are the trusted baseline)');
   for (const p of result.plugins) {
     console.log(`${p.name}@${p.version} (${p.scannedFiles} file(s) scanned)`);
     if (!p.capabilities.length) console.log('  no sensitive touchpoints detected');
@@ -481,18 +478,19 @@ function cmdAudit(args) {
   }
 }
 
+function cmdGovernance(args) {
+  const snap = readRuntimeSnapshot();
+  const view = args._[0];
+  const result = view === 'slo' ? model.contextSlo(snap) : view === 'graph' ? model.evidenceGraph(snap) : view === 'impact' ? model.impactAssessment(snap, args.plugin ?? args._[1] ?? '') : model.compositionDiff(snap, null);
+  if (args.json) return console.log(JSON.stringify(result, null, 2));
+  console.log(JSON.stringify(result, null, 2));
+}
+
 const commands = {
-  attribute: cmdAttribute,
-  conflicts: cmdConflicts,
-  diff: cmdDiff,
-  snapshot: cmdSnapshot,
-  deps: cmdDeps,
-  health: cmdHealth,
-  cost: cmdCost,
-  shadow: cmdShadow,
-  verify: cmdVerify,
-  why: cmdWhy,
-  audit: cmdAudit,
+  attribute: cmdAttribute, conflicts: cmdConflicts, diff: cmdDiff, snapshot: cmdSnapshot,
+  deps: cmdDeps, health: cmdHealth, cost: cmdCost, shadow: cmdShadow, verify: cmdVerify,
+  why: cmdWhy, audit: cmdAudit,
+  slo: cmdGovernance, graph: cmdGovernance, impact: cmdGovernance,
 };
 
 const args = parseArgs(process.argv.slice(2));
