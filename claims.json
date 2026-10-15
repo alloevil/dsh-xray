@@ -6,17 +6,17 @@
   "claims": [
     {
       "id": "cli-command-count",
-      "claim": "The CLI dispatches eleven commands — attribute, conflicts, diff, snapshot, deps, health, cost, shadow, verify, why, audit.",
-      "value": "11",
+      "claim": "The CLI dispatches fourteen commands — attribute, conflicts, diff, snapshot, deps, health, cost, shadow, verify, why, audit, slo, graph, impact.",
+      "value": "14",
       "metric": "entries in the `commands` dispatch table of bin/xray.js",
-      "method": "The table maps eleven names to their cmd* functions, and the same eleven appear in the README's CLI block, the Chinese CLI block, and the CLI's own usage banner. `deps`, `health`, `cost`, `shadow`, `verify` and `why` need the plugin mounted (they read the runtime snapshot); the other five run statically.",
+      "method": "The table maps fourteen names to their cmd* functions, and the same fourteen appear in the README's CLI blocks (the eleven core commands plus the three governance commands slo, graph, impact), the Chinese CLI block, and the CLI's own usage banner. `deps`, `health`, `cost`, `shadow`, `verify` and `why` need the plugin mounted (they read the runtime snapshot); the other five run statically.",
       "repro": "node -e \"const s=require('fs').readFileSync('bin/xray.js','utf8');const t=s.split('const commands = {')[1].split('};')[0];const k=t.match(/(\\w+):\\s*cmd/g).map((m)=>m.split(':')[0]);console.log(k.length, k.join(','))\"",
       "evidence": "bin/xray.js (dispatch table); README.md (CLI block); docs/README.zh.md (CLI block)",
       "verified": "2026-09-16",
       "check": {
         "cmd": "node -e \"const s=require('fs').readFileSync('bin/xray.js','utf8');const t=s.split('const commands = {')[1].split('};')[0];const k=t.match(/(\\w+):\\s*cmd/g).map((m)=>m.split(':')[0]);console.log(k.length, k.join(','))\"",
         "expect": {
-          "equals": "11 attribute,conflicts,diff,snapshot,deps,health,cost,shadow,verify,why,audit"
+          "equals": "14 attribute,conflicts,diff,snapshot,deps,health,cost,shadow,verify,why,audit,slo,graph,impact"
         },
         "timeout": 60
       },
@@ -110,8 +110,8 @@
     },
     {
       "id": "test-suite-split",
-      "claim": "The suite is 88 unit tests plus 10 end-to-end tests that drive a real dsh install and skip cleanly when none is present.",
-      "value": "88 unit + 10 e2e",
+      "claim": "The suite is 90 unit tests plus 10 end-to-end tests that drive a real dsh install and skip cleanly when none is present.",
+      "value": "90 unit + 10 e2e",
       "metric": "tests reported by the runner for the unit specs (the e2e file needs a live dsh)",
       "method": "node --test over every spec except e2e.spec.js; the runner's own TAP summary is asserted on the discovered count and on zero failures. The discovered count is machine-independent: the tests that need a live install skip instead of dropping out",
       "repro": "node --test $(ls tests/*.spec.js | grep -v e2e.spec.js)",
@@ -121,7 +121,7 @@
         "cmd": "node --test $(ls tests/*.spec.js | grep -v e2e.spec.js) 2>&1 | sed -n 's/^# \\(tests\\|pass\\|fail\\) /\\1=/p' | tr '\\n' ' '",
         "expect": {
           "contains": [
-            "tests=88 ",
+            "tests=90 ",
             "fail=0 "
           ]
         },
