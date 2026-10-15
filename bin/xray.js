@@ -467,7 +467,10 @@ function cmdAudit(args) {
   const data = collectStatic(args.profile);
   const result = collectAudit(data);
   if (args.json) return console.log(JSON.stringify(result, null, 2));
-  if (!result.plugins.length) return console.log('no out-of-tree plugins installed (kernel bundles are the trusted baseline)');
+  if (!result.plugins.length)
+    return console.log(
+      'no out-of-tree plugins installed (kernel bundles are the trusted baseline)',
+    );
   for (const p of result.plugins) {
     console.log(`${p.name}@${p.version} (${p.scannedFiles} file(s) scanned)`);
     if (!p.capabilities.length) console.log('  no sensitive touchpoints detected');
@@ -481,16 +484,33 @@ function cmdAudit(args) {
 function cmdGovernance(args) {
   const snap = readRuntimeSnapshot();
   const view = args._[0];
-  const result = view === 'slo' ? model.contextSlo(snap) : view === 'graph' ? model.evidenceGraph(snap) : view === 'impact' ? model.impactAssessment(snap, args.plugin ?? args._[1] ?? '') : model.compositionDiff(snap, null);
+  const result =
+    view === 'slo'
+      ? model.contextSlo(snap)
+      : view === 'graph'
+        ? model.evidenceGraph(snap)
+        : view === 'impact'
+          ? model.impactAssessment(snap, args.plugin ?? args._[1] ?? '')
+          : model.compositionDiff(snap, null);
   if (args.json) return console.log(JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result, null, 2));
 }
 
 const commands = {
-  attribute: cmdAttribute, conflicts: cmdConflicts, diff: cmdDiff, snapshot: cmdSnapshot,
-  deps: cmdDeps, health: cmdHealth, cost: cmdCost, shadow: cmdShadow, verify: cmdVerify,
-  why: cmdWhy, audit: cmdAudit,
-  slo: cmdGovernance, graph: cmdGovernance, impact: cmdGovernance,
+  attribute: cmdAttribute,
+  conflicts: cmdConflicts,
+  diff: cmdDiff,
+  snapshot: cmdSnapshot,
+  deps: cmdDeps,
+  health: cmdHealth,
+  cost: cmdCost,
+  shadow: cmdShadow,
+  verify: cmdVerify,
+  why: cmdWhy,
+  audit: cmdAudit,
+  slo: cmdGovernance,
+  graph: cmdGovernance,
+  impact: cmdGovernance,
 };
 
 const args = parseArgs(process.argv.slice(2));
@@ -512,6 +532,9 @@ Commands:
   verify      declared (static) rows reconciled against the runtime registry
   why         provenance chain for one tool: who registered it, who provides its injects
   audit       static scan of out-of-tree plugins for sensitive touchpoints
+  slo         Context SLO: budget checks with PASS/WARN/FAIL
+  graph       normalized evidence graph: plugins, entries, services
+  impact      read-only observed impact of one plugin (--plugin <name>); never applies changes
 
 deps/health/cost/shadow/verify/why need the plugin mounted: dsh plugin --profile web add dsh-xray`);
   process.exit(args._[0] ? 2 : 0);
