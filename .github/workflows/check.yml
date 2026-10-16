@@ -27,7 +27,7 @@ jobs:
       - run: pnpm coverage
       - name: Generate lcov
         run: node --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage.lcov --test-reporter=spec --test-reporter-destination=stdout tests/*.spec.js
-      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         if: matrix.node == 22
         with:
           files: coverage.lcov
